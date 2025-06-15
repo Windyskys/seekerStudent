@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeekerAI智能学习平台 - 每日挑战</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        .challenges-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-xl);
+            color: white;
+            margin-bottom: var(--space-xl);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .challenges-header::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            right: -10%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: rotate(45deg);
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 1fr 200px;
+            gap: var(--space-xl);
+            align-items: center;
+        }
+        
+        .header-info h1 {
+            margin: 0 0 var(--space-sm) 0;
+            font-size: var(--font-size-xl);
+        }
+        
+        .header-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-lg);
+            margin-top: var(--space-lg);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .stat-label {
+            font-size: var(--font-size-sm);
+            opacity: 0.9;
+        }
+        
+        .streak-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin: 0 auto;
+        }
+        
+        .streak-number {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .streak-label {
+            font-size: var(--font-size-sm);
+            opacity: 0.9;
+        }
+        
+        .challenges-grid {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: var(--space-xl);
+        }
+        
+        .challenges-main {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xl);
+        }
+        
+        .challenges-section {
+            background: var(--light-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-xl);
+        }
+        
+        .section-title {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            margin-bottom: var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .challenges-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: var(--space-lg);
+        }
+        
+        .challenge-card {
+            background: var(--light-gray);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-lg);
+            transition: all var(--transition-speed);
+            position: relative;
+            border: 2px solid transparent;
+        }
+        
+        .challenge-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .challenge-card.completed {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.1));
+            border-color: var(--success-color);
+        }
+        
+        .challenge-card.in-progress {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(139, 92, 246, 0.1));
+            border-color: var(--primary-color);
+        }
+        
+        .challenge-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            margin-bottom: var(--space-md);
+        }
+        
+        .challenge-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .challenge-card.completed .challenge-icon {
+            background: var(--success-color);
+        }
+        
+        .challenge-info {
+            flex: 1;
+        }
+        
+        .challenge-title {
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .challenge-difficulty {
+            font-size: var(--font-size-xs);
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: var(--border-radius);
+            display: inline-block;
+        }
+        
+        .difficulty-easy {
+            background: var(--success-color);
+            color: white;
+        }
+        
+        .difficulty-medium {
+            background: var(--warning-color);
+            color: white;
+        }
+        
+        .difficulty-hard {
+            background: var(--error-color);
+            color: white;
+        }
+        
+        .challenge-description {
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: var(--space-md);
+            font-size: var(--font-size-sm);
+        }
+        
+        .challenge-progress {
+            margin-bottom: var(--space-md);
+        }
+        
+        .progress-bar {
+            background: var(--light-gray);
+            border-radius: var(--border-radius);
+            height: 8px;
+            overflow: hidden;
+            margin-bottom: var(--space-sm);
+        }
+        
+        .progress-fill {
+            background: var(--primary-color);
+            height: 100%;
+            border-radius: var(--border-radius);
+            transition: width var(--transition-speed);
+        }
+        
+        .challenge-card.completed .progress-fill {
+            background: var(--success-color);
+        }
+        
+        .progress-text {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .challenge-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .challenge-reward {
+            background: var(--warning-color);
+            color: white;
+            font-size: var(--font-size-xs);
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: var(--border-radius);
+            font-weight: 500;
+        }
+        
+        .challenge-status {
+            font-size: var(--font-size-xs);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        
+        .status-completed {
+            color: var(--success-color);
+        }
+        
+        .status-in-progress {
+            color: var(--primary-color);
+        }
+        
+        .status-pending {
+            color: var(--text-secondary);
+        }
+        
+        .challenges-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-lg);
+        }
+        
+        .sidebar-card {
+            background: var(--light-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-lg);
+        }
+        
+        .card-title {
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            margin-bottom: var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .daily-summary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-lg);
+            text-align: center;
+            margin-bottom: var(--space-lg);
+        }
+        
+        .summary-title {
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            margin-bottom: var(--space-md);
+        }
+        
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-md);
+        }
+        
+        .summary-stat {
+            text-align: center;
+        }
+        
+        .summary-number {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .summary-label {
+            font-size: var(--font-size-xs);
+            opacity: 0.9;
+        }
+        
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md) 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .leaderboard-item:last-child {
+            border-bottom: none;
+        }
+        
+        .rank-badge {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .rank-badge.top3 {
+            background: var(--warning-color);
+            color: white;
+        }
+        
+        .leaderboard-info {
+            flex: 1;
+        }
+        
+        .leaderboard-name {
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .leaderboard-score {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+        }
+        
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md) 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-date {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+            min-width: 60px;
+        }
+        
+        .history-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--success-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .history-info {
+            flex: 1;
+        }
+        
+        .history-title {
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .history-reward {
+            font-size: var(--font-size-xs);
+            color: var(--warning-color);
+            font-weight: 500;
+        }
+        
+        @media (max-width: 1024px) {
+            .challenges-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .challenges-sidebar {
+                order: -1;
+            }
+            
+            .challenges-list {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .header-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .summary-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- 侧边栏 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <img src="../teacher/img/logo.svg" alt="SeekerAI" style="height: 40px; width: auto;">
+
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i data-lucide="chevron-left"></i>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-group">
+                    <div class="nav-group-title">学习中心</div>
+                    <div class="nav-item">
+                        <a href="dashboard.html">
+                            <div class="icon"><i data-lucide="home"></i></div>
+                            <span>学习仪表盘</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="assessment.html">
+                            <div class="icon"><i data-lucide="brain"></i></div>
+                            <span>AI智能测评</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="progress.html">
+                            <div class="icon"><i data-lucide="target"></i></div>
+                            <span>学习进度</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="mistakes.html">
+                            <div class="icon"><i data-lucide="book"></i></div>
+                            <span>智能错题本</span>
+                            <span class="badge">12</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="nav-group">
+                    <div class="nav-group-title">激励系统</div>
+                    <div class="nav-item">
+                        <a href="achievements.html">
+                            <div class="icon"><i data-lucide="award"></i></div>
+                            <span>成就系统</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="leaderboard.html">
+                            <div class="icon"><i data-lucide="trophy"></i></div>
+                            <span>学习排行榜</span>
+                        </a>
+                    </div>
+                    <div class="nav-item active">
+                        <a href="challenges.html">
+                            <div class="icon"><i data-lucide="zap"></i></div>
+                            <span>每日挑战</span>
+                            <span class="badge">3</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="nav-group">
+                    <div class="nav-group-title">个人中心</div>
+                    <div class="nav-item">
+                        <a href="profile.html">
+                            <div class="icon"><i data-lucide="user"></i></div>
+                            <span>个人资料</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="settings.html">
+                            <div class="icon"><i data-lucide="settings"></i></div>
+                            <span>学习设置</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+        
+        <!-- 主内容区域 -->
+        <main class="main-content" id="mainContent">
+            <!-- 顶部导航栏 -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <div class="topbar-title">
+                        <h1>每日挑战</h1>
+                    </div>
+                </div>
+                
+                <div class="topbar-right">
+                    <div class="search-box">
+                        <i data-lucide="search"></i>
+                        <input type="text" placeholder="搜索挑战...">
+                    </div>
+                    
+                    <button class="notification-btn">
+                        <i data-lucide="bell"></i>
+                        <span class="notification-badge">2</span>
+                    </button>
+                    
+                    <div class="user-profile">
+                        <div class="avatar">王小华</div>
+                        <div class="user-info">
+                            <div class="username">王小华</div>
+                            <div class="role">初二(3)班</div>
+                        </div>
+                        <i data-lucide="chevron-down"></i>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- 挑战内容 -->
+            <div class="dashboard-content">
+                <!-- 挑战头部 -->
+                <div class="challenges-header">
+                    <div class="header-content">
+                        <div class="header-info">
+                            <h1>今日挑战</h1>
+                            <p>完成每日挑战，获得额外积分奖励，保持学习热情！</p>
+                            <div class="header-stats">
+                                <div class="stat-item">
+                                    <div class="stat-number">2/5</div>
+                                    <div class="stat-label">今日完成</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">150</div>
+                                    <div class="stat-label">今日积分</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">85%</div>
+                                    <div class="stat-label">本周完成率</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="streak-circle">
+                            <div class="streak-number">7</div>
+                            <div class="streak-label">连续挑战天数</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="challenges-grid">
+                    <!-- 主挑战区域 -->
+                    <div class="challenges-main">
+                        <!-- 今日挑战 -->
+                        <div class="challenges-section">
+                            <h2 class="section-title">
+                                <i data-lucide="calendar" style="width: 20px; height: 20px;"></i>
+                                今日挑战
+                            </h2>
+                            
+                            <div class="challenges-list">
+                                <div class="challenge-card completed">
+                                    <div class="challenge-header">
+                                        <div class="challenge-icon">
+                                            <i data-lucide="clock" style="width: 24px; height: 24px;"></i>
+                                        </div>
+                                        <div class="challenge-info">
+                                            <div class="challenge-title">学习达人</div>
+                                            <div class="challenge-difficulty difficulty-easy">简单</div>
+                                        </div>
+                                    </div>
+                                    <div class="challenge-description">
+                                        今日学习时长达到2小时，培养良好的学习习惯
+                                    </div>
+                                    <div class="challenge-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 100%;"></div>
+                                        </div>
+                                        <div class="progress-text">
+                                            <span>已完成 2.5/2.0 小时</span>
+                                            <span>125%</span>
+                                        </div>
+                                    </div>
+                                    <div class="challenge-footer">
+                                        <div class="challenge-reward">+50积分</div>
+                                        <div class="challenge-status status-completed">
+                                            <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+                                            已完成
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="challenge-card in-progress">
+                                    <div class="challenge-header">
+                                        <div class="challenge-icon">
+                                            <i data-lucide="target" style="width: 24px; height: 24px;"></i>
+                                        </div>
+                                        <div class="challenge-info">
+                                            <div class="challenge-title">精准射手</div>
+                                            <div class="challenge-difficulty difficulty-medium">中等</div>
+                                        </div>
+                                    </div>
+                                    <div class="challenge-description">
+                                        完成20道练习题，正确率达到90%以上
+                                    </div>
+                                    <div class="challenge-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 60%;"></div>
+                                        </div>
+                                        <div class="progress-text">
+                                            <span>已完成 12/20 题 (正确率: 92%)</span>
+                                            <span>60%</span>
+                                        </div>
+                                    </div>
+                                    <div class="challenge-footer">
+                                        <div class="challenge-reward">+100积分</div>
+                                        <div class="challenge-status status-in-progress">
+                                            <i data-lucide="play-circle" style="width: 16px; height: 16px;"></i>
+                                            进行中
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="challenge-card">
+                                    <div class="challenge-header">
+                                        <div class="challenge-icon">
+                                            <i data-lucide="book" style="width: 24px; height: 24px;"></i>
+                                        </div>
+                                        <div class="challenge-info">
+                                            <div class="challenge-title">错题终结者</div>
+                                            <div class="challenge-difficulty difficulty-medium">中等</div>
+                                        </div>
+                                    </div>
+                                    <div class="challenge-description">
+                                        复习10道错题，全部答对即可完成挑战
+                                    </div>
+                                    <div class="challenge-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 0%;"></div>
+                                        </div>
+                                        <div class="progress-text">
+                                            <span>待开始 0/10 题</span>
+                                            <span>0%</span>
+                                        </div>
+                                    </div>
+                                    <div class="challenge-footer">
+                                        <div class="challenge-reward">+75积分</div>
+                                        <div class="challenge-status status-pending">
+                                            <i data-lucide="clock" style="width: 16px; height: 16px;"></i>
+                                            待开始
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="challenge-card completed">
+                                    <div class="challenge-header">
+                                        <div class="challenge-icon">
+                                            <i data-lucide="users" style="width: 24px; height: 24px;"></i>
+                                        </div>
+                                        <div class="challenge-info">
+                                            <div class="challenge-title">互助小能手</div>
+                                            <div class="challenge-difficulty difficulty-easy">简单</div>
+                                        </div>
+                                    </div>
+                                    <div class="challenge-description">
+                                        帮助3位同学解答问题，传播知识的力量
+                                    </div>
+                                    <div class="challenge-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 100%;"></div>
+                                        </div>
+                                        <div class="progress-text">
+                                            <span>已完成 3/3 次帮助</span>
+                                            <span>100%</span>
+                                        </div>
+                                    </div>
+                                    <div class="challenge-footer">
+                                        <div class="challenge-reward">+60积分</div>
+                                        <div class="challenge-status status-completed">
+                                            <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+                                            已完成
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="challenge-card">
+                                    <div class="challenge-header">
+                                        <div class="challenge-icon">
+                                            <i data-lucide="flame" style="width: 24px; height: 24px;"></i>
+                                        </div>
+                                        <div class="challenge-info">
+                                            <div class="challenge-title">专注大师</div>
+                                            <div class="challenge-difficulty difficulty-hard">困难</div>
+                                        </div>
+                                    </div>
+                                    <div class="challenge-description">
+                                        连续专注学习45分钟不中断，培养深度学习能力
+                                    </div>
+                                    <div class="challenge-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 0%;"></div>
+                                        </div>
+                                        <div class="progress-text">
+                                            <span>待开始 0/45 分钟</span>
+                                            <span>0%</span>
+                                        </div>
+                                    </div>
+                                    <div class="challenge-footer">
+                                        <div class="challenge-reward">+150积分</div>
+                                        <div class="challenge-status status-pending">
+                                            <i data-lucide="clock" style="width: 16px; height: 16px;"></i>
+                                            待开始
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 特殊挑战 -->
+                        <div class="challenges-section">
+                            <h2 class="section-title">
+                                <i data-lucide="star" style="width: 20px; height: 20px;"></i>
+                                特殊挑战
+                            </h2>
+                            
+                            <div class="challenges-list">
+                                <div class="challenge-card">
+                                    <div class="challenge-header">
+                                        <div class="challenge-icon">
+                                            <i data-lucide="trending-up" style="width: 24px; height: 24px;"></i>
+                                        </div>
+                                        <div class="challenge-info">
+                                            <div class="challenge-title">进步之星</div>
+                                            <div class="challenge-difficulty difficulty-medium">中等</div>
+                                        </div>
+                                    </div>
+                                    <div class="challenge-description">
+                                        本周测评成绩比上周提高10分以上
+                                    </div>
+                                    <div class="challenge-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 75%;"></div>
+                                        </div>
+                                        <div class="progress-text">
+                                            <span>已提高 7.5/10.0 分</span>
+                                            <span>75%</span>
+                                        </div>
+                                    </div>
+                                    <div class="challenge-footer">
+                                        <div class="challenge-reward">+200积分</div>
+                                        <div class="challenge-status status-in-progress">
+                                            <i data-lucide="play-circle" style="width: 16px; height: 16px;"></i>
+                                            进行中
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="challenge-card">
+                                    <div class="challenge-header">
+                                        <div class="challenge-icon">
+                                            <i data-lucide="crown" style="width: 24px; height: 24px;"></i>
+                                        </div>
+                                        <div class="challenge-info">
+                                            <div class="challenge-title">班级王者</div>
+                                            <div class="challenge-difficulty difficulty-hard">困难</div>
+                                        </div>
+                                    </div>
+                                    <div class="challenge-description">
+                                        在班级排行榜中进入前3名并保持一周
+                                    </div>
+                                    <div class="challenge-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 43%;"></div>
+                                        </div>
+                                        <div class="progress-text">
+                                            <span>已保持 3/7 天 (当前第3名)</span>
+                                            <span>43%</span>
+                                        </div>
+                                    </div>
+                                    <div class="challenge-footer">
+                                        <div class="challenge-reward">+500积分</div>
+                                        <div class="challenge-status status-in-progress">
+                                            <i data-lucide="play-circle" style="width: 16px; height: 16px;"></i>
+                                            进行中
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 侧边栏 -->
+                    <div class="challenges-sidebar">
+                        <!-- 今日总结 -->
+                        <div class="daily-summary">
+                            <div class="summary-title">今日挑战总结</div>
+                            <div class="summary-stats">
+                                <div class="summary-stat">
+                                    <div class="summary-number">2</div>
+                                    <div class="summary-label">已完成</div>
+                                </div>
+                                <div class="summary-stat">
+                                    <div class="summary-number">3</div>
+                                    <div class="summary-label">进行中</div>
+                                </div>
+                                <div class="summary-stat">
+                                    <div class="summary-number">110</div>
+                                    <div class="summary-label">获得积分</div>
+                                </div>
+                                <div class="summary-stat">
+                                    <div class="summary-number">7</div>
+                                    <div class="summary-label">连续天数</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 挑战排行榜 -->
+                        <div class="sidebar-card">
+                            <div class="card-title">
+                                <i data-lucide="trophy" style="width: 16px; height: 16px;"></i>
+                                本周挑战榜
+                            </div>
+                            
+                            <div class="leaderboard-item">
+                                <div class="rank-badge top3">1</div>
+                                <div class="leaderboard-info">
+                                    <div class="leaderboard-name">李明</div>
+                                    <div class="leaderboard-score">完成35个挑战</div>
+                                </div>
+                            </div>
+                            
+                            <div class="leaderboard-item">
+                                <div class="rank-badge top3">2</div>
+                                <div class="leaderboard-info">
+                                    <div class="leaderboard-name">王小红</div>
+                                    <div class="leaderboard-score">完成32个挑战</div>
+                                </div>
+                            </div>
+                            
+                            <div class="leaderboard-item">
+                                <div class="rank-badge top3">3</div>
+                                <div class="leaderboard-info">
+                                    <div class="leaderboard-name">王小华</div>
+                                    <div class="leaderboard-score">完成28个挑战</div>
+                                </div>
+                            </div>
+                            
+                            <div class="leaderboard-item">
+                                <div class="rank-badge">4</div>
+                                <div class="leaderboard-info">
+                                    <div class="leaderboard-name">刘美丽</div>
+                                    <div class="leaderboard-score">完成25个挑战</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 完成历史 -->
+                        <div class="sidebar-card">
+                            <div class="card-title">
+                                <i data-lucide="history" style="width: 16px; height: 16px;"></i>
+                                最近完成
+                            </div>
+                            
+                            <div class="history-item">
+                                <div class="history-date">今天</div>
+                                <div class="history-icon">
+                                    <i data-lucide="users" style="width: 16px; height: 16px;"></i>
+                                </div>
+                                <div class="history-info">
+                                    <div class="history-title">互助小能手</div>
+                                    <div class="history-reward">+60积分</div>
+                                </div>
+                            </div>
+                            
+                            <div class="history-item">
+                                <div class="history-date">今天</div>
+                                <div class="history-icon">
+                                    <i data-lucide="clock" style="width: 16px; height: 16px;"></i>
+                                </div>
+                                <div class="history-info">
+                                    <div class="history-title">学习达人</div>
+                                    <div class="history-reward">+50积分</div>
+                                </div>
+                            </div>
+                            
+                            <div class="history-item">
+                                <div class="history-date">昨天</div>
+                                <div class="history-icon">
+                                    <i data-lucide="target" style="width: 16px; height: 16px;"></i>
+                                </div>
+                                <div class="history-info">
+                                    <div class="history-title">精准射手</div>
+                                    <div class="history-reward">+100积分</div>
+                                </div>
+                            </div>
+                            
+                            <div class="history-item">
+                                <div class="history-date">昨天</div>
+                                <div class="history-icon">
+                                    <i data-lucide="book" style="width: 16px; height: 16px;"></i>
+                                </div>
+                                <div class="history-info">
+                                    <div class="history-title">错题终结者</div>
+                                    <div class="history-reward">+75积分</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 初始化 Lucide 图标
+        lucide.createIcons();
+        
+        // 侧边栏切换功能
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const menuToggle = document.getElementById('menuToggle');
+        
+        function toggleSidebar() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            
+            const icon = sidebarToggle.querySelector('i');
+            if (sidebar.classList.contains('collapsed')) {
+                icon.setAttribute('data-lucide', 'chevron-right');
+            } else {
+                icon.setAttribute('data-lucide', 'chevron-left');
+            }
+            lucide.createIcons();
+        }
+        
+        function toggleMobileSidebar() {
+            sidebar.classList.toggle('open');
+        }
+        
+        sidebarToggle?.addEventListener('click', toggleSidebar);
+        menuToggle?.addEventListener('click', toggleMobileSidebar);
+        
+        // 挑战卡片点击事件
+        const challengeCards = document.querySelectorAll('.challenge-card');
+        challengeCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const title = card.querySelector('.challenge-title').textContent;
+                const status = card.querySelector('.challenge-status').textContent.trim();
+                
+                if (status === '已完成') {
+                    showChallengeDetail(title, '已完成');
+                } else if (status === '进行中') {
+                    showChallengeProgress(title);
+                } else {
+                    startChallenge(title);
+                }
+            });
+        });
+        
+        // 显示挑战详情
+        function showChallengeDetail(title, status) {
+            alert(`挑战"${title}"${status}！点击查看详细信息。`);
+        }
+        
+        // 显示挑战进度
+        function showChallengeProgress(title) {
+            alert(`挑战"${title}"正在进行中，继续加油！`);
+        }
+        
+        // 开始挑战
+        function startChallenge(title) {
+            if (confirm(`确定要开始挑战"${title}"吗？`)) {
+                alert(`挑战"${title}"已开始！加油完成吧！`);
+                // 这里可以添加开始挑战的逻辑
+            }
+        }
+        
+        // 搜索功能
+        const searchInput = document.querySelector('.search-box input');
+        searchInput?.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            challengeCards.forEach(card => {
+                const title = card.querySelector('.challenge-title').textContent.toLowerCase();
+                const description = card.querySelector('.challenge-description').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+        
+        // 模拟挑战进度更新
+        function updateChallengeProgress() {
+            const progressCards = document.querySelectorAll('.challenge-card.in-progress');
+            progressCards.forEach(card => {
+                // 这里可以添加实时更新挑战进度的逻辑
+                console.log('更新挑战进度');
+            });
+        }
+        
+        // 每30秒更新一次进度
+        setInterval(updateChallengeProgress, 30000);
+        
+        // 响应式处理
+        mainContent?.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('open');
+            }
+        });
+        
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+            }
+        });
+        
+        // 挑战完成庆祝动画
+        function celebrateChallenge(challengeName) {
+            // 这里可以添加完成挑战的庆祝动画
+            console.log(`🎉 恭喜完成挑战：${challengeName}`);
+        }
+    </script>
+</body>
+</html> 

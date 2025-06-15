@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeekerAI智能学习平台 - 测评结果分析</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .result-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--space-xl);
+        }
+
+        .result-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            padding: var(--space-2xl);
+            border-radius: var(--border-radius-lg);
+            margin-bottom: var(--space-xl);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .result-title {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            margin-bottom: var(--space-sm);
+            position: relative;
+            z-index: 1;
+        }
+
+        .result-subtitle {
+            font-size: var(--font-size-lg);
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .result-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-lg);
+            margin-bottom: var(--space-xl);
+        }
+
+        .overview-card {
+            background: var(--light-color);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-xl);
+            box-shadow: 0 4px 20px var(--shadow-color);
+            text-align: center;
+            position: relative;
+            transition: transform var(--transition-speed);
+        }
+
+        .overview-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 32px var(--shadow-hover);
+        }
+
+        .overview-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto var(--space-md);
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .overview-value {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: var(--space-xs);
+        }
+
+        .overview-label {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            margin-bottom: var(--space-sm);
+        }
+
+        .overview-trend {
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-xs);
+        }
+
+        .trend-up {
+            color: var(--success-color);
+        }
+
+        .result-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--space-xl);
+            margin-bottom: var(--space-xl);
+        }
+
+        .analysis-section {
+            background: var(--light-color);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-xl);
+            box-shadow: 0 4px 20px var(--shadow-color);
+            margin-bottom: var(--space-lg);
+        }
+
+        .section-title {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+
+        .title-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--primary-color);
+            border-radius: var(--border-radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .knowledge-points {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-md);
+        }
+
+        .knowledge-point {
+            background: var(--light-gray);
+            border-radius: var(--border-radius);
+            padding: var(--space-md);
+            border-left: 4px solid var(--border-color);
+            transition: all var(--transition-speed);
+        }
+
+        .knowledge-point.excellent {
+            border-left-color: var(--success-color);
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.05) 0%, rgba(40, 167, 69, 0.02) 100%);
+        }
+
+        .knowledge-point.good {
+            border-left-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(107, 165, 57, 0.05) 0%, rgba(107, 165, 57, 0.02) 100%);
+        }
+
+        .knowledge-point.needs-improvement {
+            border-left-color: var(--warning-color);
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.05) 0%, rgba(255, 193, 7, 0.02) 100%);
+        }
+
+        .point-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-sm);
+        }
+
+        .point-name {
+            font-weight: 500;
+            font-size: var(--font-size-sm);
+        }
+
+        .point-score {
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+        }
+
+        .point-progress {
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: var(--space-sm);
+        }
+
+        .point-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width var(--transition-speed);
+        }
+
+        .excellent .point-fill {
+            background: var(--success-color);
+        }
+
+        .good .point-fill {
+            background: var(--primary-color);
+        }
+
+        .needs-improvement .point-fill {
+            background: var(--warning-color);
+        }
+
+        .point-status {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+        }
+
+        .ai-analysis {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.05), rgba(139, 92, 246, 0.05));
+            border: 1px solid rgba(79, 70, 229, 0.1);
+            border-radius: var(--border-radius);
+            padding: var(--space-lg);
+        }
+
+        .ai-content {
+            line-height: 1.8;
+            color: var(--text-color);
+        }
+
+        .recommendations {
+            list-style: none;
+            padding: 0;
+        }
+
+        .recommendation-item {
+            background: var(--light-gray);
+            border-radius: var(--border-radius);
+            padding: var(--space-md);
+            margin-bottom: var(--space-md);
+            border-left: 4px solid var(--primary-color);
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-md);
+        }
+
+        .rec-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .chart-container {
+            height: 300px;
+            margin: var(--space-lg) 0;
+            position: relative;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: var(--space-md);
+            justify-content: center;
+            margin-top: var(--space-xl);
+        }
+
+        .btn-large {
+            padding: var(--space-md) var(--space-xl);
+            font-size: var(--font-size-base);
+            border-radius: var(--border-radius);
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .btn-primary-large {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+        }
+
+        .btn-primary-large:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(107, 165, 57, 0.3);
+        }
+
+        .btn-secondary-large {
+            background: var(--light-color);
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary-large:hover {
+            border-color: var(--primary-color);
+            background: rgba(107, 165, 57, 0.05);
+        }
+
+        .loading-section {
+            text-align: center;
+            padding: var(--space-3xl);
+            color: var(--text-secondary);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto var(--space-lg);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .result-container {
+                padding: var(--space-md);
+            }
+
+            .result-content {
+                grid-template-columns: 1fr;
+            }
+
+            .overview-card {
+                padding: var(--space-lg);
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- 侧边栏 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <img src="img/logo.svg" alt="SeekerAI" style="height: 40px; width: auto;">
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i data-lucide="chevron-left"></i>
+                </button>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main-content" id="mainContent">
+            <div class="result-container">
+                <!-- 结果头部 -->
+                <div class="result-header">
+                    <h1 class="result-title">测评结果分析</h1>
+                    <p class="result-subtitle">AI智能分析您的数学学习状况</p>
+                </div>
+
+                <!-- 加载状态 -->
+                <div class="loading-section" id="loadingSection">
+                    <div class="loading-spinner"></div>
+                    <p>AI正在深度分析您的测评结果，请稍候...</p>
+                </div>
+
+                <!-- 结果内容 -->
+                <div id="resultContent" style="display: none;">
+                    <!-- 概览卡片 -->
+                    <div class="result-overview">
+                        <div class="overview-card">
+                            <div class="overview-icon" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-light));">
+                                <i data-lucide="target"></i>
+                            </div>
+                            <div class="overview-value" id="totalScore">85</div>
+                            <div class="overview-label">综合得分</div>
+                            <div class="overview-trend trend-up">
+                                <i data-lucide="trending-up" size="14"></i>
+                                <span>良好水平</span>
+                            </div>
+                        </div>
+
+                        <div class="overview-card">
+                            <div class="overview-icon" style="background: linear-gradient(135deg, var(--success-color), #20c997);">
+                                <i data-lucide="check-circle"></i>
+                            </div>
+                            <div class="overview-value" id="correctRate">80%</div>
+                            <div class="overview-label">正确率</div>
+                            <div class="overview-trend trend-up">
+                                <i data-lucide="trending-up" size="14"></i>
+                                <span>超越70%同年级</span>
+                            </div>
+                        </div>
+
+                        <div class="overview-card">
+                            <div class="overview-icon" style="background: linear-gradient(135deg, var(--info-color), #00bcd4);">
+                                <i data-lucide="clock"></i>
+                            </div>
+                            <div class="overview-value" id="avgTime">1:32</div>
+                            <div class="overview-label">平均用时</div>
+                            <div class="overview-trend trend-up">
+                                <i data-lucide="trending-up" size="14"></i>
+                                <span>思考充分</span>
+                            </div>
+                        </div>
+
+                        <div class="overview-card">
+                            <div class="overview-icon" style="background: linear-gradient(135deg, var(--warning-color), #fbbf24);">
+                                <i data-lucide="brain"></i>
+                            </div>
+                            <div class="overview-value" id="difficulty">中等</div>
+                            <div class="overview-label">适应难度</div>
+                            <div class="overview-trend trend-up">
+                                <i data-lucide="trending-up" size="14"></i>
+                                <span>可挑战更高难度</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 主要内容区域 -->
+                    <div class="result-content">
+                        <!-- 左侧：详细分析 -->
+                        <div class="main-analysis">
+                            <!-- 知识点掌握情况 -->
+                            <div class="analysis-section">
+                                <h2 class="section-title">
+                                    <div class="title-icon">
+                                        <i data-lucide="book-open"></i>
+                                    </div>
+                                    知识点掌握情况
+                                </h2>
+                                <div class="knowledge-points" id="knowledgePoints">
+                                    <!-- 动态插入知识点 -->
+                                </div>
+                            </div>
+
+                            <!-- AI智能分析 -->
+                            <div class="analysis-section">
+                                <h2 class="section-title">
+                                    <div class="title-icon">
+                                        <i data-lucide="brain"></i>
+                                    </div>
+                                    AI智能分析
+                                </h2>
+                                <div class="ai-analysis">
+                                    <div class="ai-content" id="aiAnalysisContent">
+                                        <!-- AI分析内容 -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 学习能力雷达图 -->
+                            <div class="analysis-section">
+                                <h2 class="section-title">
+                                    <div class="title-icon">
+                                        <i data-lucide="activity"></i>
+                                    </div>
+                                    学习能力分析
+                                </h2>
+                                <div class="chart-container">
+                                    <canvas id="abilityChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 右侧：建议和行动 -->
+                        <div class="sidebar-analysis">
+                            <!-- 学习建议 -->
+                            <div class="analysis-section">
+                                <h2 class="section-title">
+                                    <div class="title-icon">
+                                        <i data-lucide="lightbulb"></i>
+                                    </div>
+                                    学习建议
+                                </h2>
+                                <ul class="recommendations" id="recommendations">
+                                    <!-- 动态插入建议 -->
+                                </ul>
+                            </div>
+
+                            <!-- 后续学习规划 -->
+                            <div class="analysis-section">
+                                <h2 class="section-title">
+                                    <div class="title-icon">
+                                        <i data-lucide="map"></i>
+                                    </div>
+                                    学习规划
+                                </h2>
+                                <div id="learningPlan">
+                                    <!-- 学习规划内容 -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 操作按钮 -->
+                    <div class="action-buttons">
+                        <a href="dashboard.html" class="btn-large btn-secondary-large">
+                            <i data-lucide="home"></i>
+                            返回首页
+                        </a>
+                        <a href="progress.html" class="btn-large btn-primary-large">
+                            <i data-lucide="target"></i>
+                            查看学习进度
+                        </a>
+                        <button class="btn-large btn-primary-large" onclick="generateWhitepaper()">
+                            <i data-lucide="file-text"></i>
+                            生成学情白皮书
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        class AssessmentResult {
+            constructor() {
+                this.sessionId = this.getSessionId();
+                this.resultData = null;
+                this.chart = null;
+                
+                this.initializeElements();
+                this.loadResult();
+            }
+
+            initializeElements() {
+                this.loadingSection = document.getElementById('loadingSection');
+                this.resultContent = document.getElementById('resultContent');
+                this.totalScore = document.getElementById('totalScore');
+                this.correctRate = document.getElementById('correctRate');
+                this.avgTime = document.getElementById('avgTime');
+                this.difficulty = document.getElementById('difficulty');
+                this.knowledgePoints = document.getElementById('knowledgePoints');
+                this.aiAnalysisContent = document.getElementById('aiAnalysisContent');
+                this.recommendations = document.getElementById('recommendations');
+                this.learningPlan = document.getElementById('learningPlan');
+            }
+
+            getSessionId() {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get('sessionId') || 'demo_session';
+            }
+
+            async loadResult() {
+                try {
+                    // 模拟API调用延迟
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // 模拟从后端获取测评结果
+                    const response = await this.fetchAssessmentResult();
+                    this.resultData = response;
+                    
+                    this.displayResult();
+                    this.hideLoading();
+                } catch (error) {
+                    console.error('加载测评结果失败:', error);
+                    this.showError();
+                }
+            }
+
+            async fetchAssessmentResult() {
+                // 模拟测评结果数据
+                return {
+                    overview: {
+                        totalScore: 85,
+                        correctRate: 80,
+                        avgTime: 92, // 秒
+                        adaptiveDifficulty: 'medium'
+                    },
+                    knowledgePoints: [
+                        {
+                            name: '有理数概念',
+                            mastery: 0.85,
+                            status: 'excellent',
+                            questions: 2,
+                            correct: 2
+                        },
+                        {
+                            name: '有理数运算',
+                            mastery: 0.72,
+                            status: 'good',
+                            questions: 2,
+                            correct: 1
+                        },
+                        {
+                            name: '绝对值',
+                            mastery: 0.65,
+                            status: 'needs-improvement',
+                            questions: 1,
+                            correct: 0
+                        }
+                    ],
+                    abilities: {
+                        understanding: 82,
+                        application: 75,
+                        analysis: 70,
+                        computation: 88,
+                        logical: 78
+                    },
+                    aiAnalysis: `
+                        基于本次测评结果，王小华同学在数学学习方面表现出以下特点：
+                        
+                        <strong>优势方面：</strong>
+                        • 对基本概念的理解较为扎实，特别是有理数概念掌握良好
+                        • 计算能力较强，基础运算准确率高
+                        • 答题时间控制合理，思考过程较为充分
+                        
+                        <strong>需要提升的方面：</strong>
+                        • 绝对值相关概念需要加强理解和练习
+                        • 复杂运算的准确性有待提高
+                        • 可以尝试挑战更高难度的题目
+                        
+                        <strong>学习建议：</strong>
+                        建议重点复习绝对值的定义和性质，多做相关练习题。同时保持现有的学习节奏，逐步提升综合应用能力。
+                    `,
+                    recommendations: [
+                        {
+                            type: 'review',
+                            title: '重点复习绝对值概念',
+                            description: '建议花费1-2天时间重新学习绝对值的定义、性质和计算方法',
+                            priority: 'high'
+                        },
+                        {
+                            type: 'practice',
+                            title: '增加有理数运算练习',
+                            description: '每天完成10-15道有理数混合运算题目，提升计算准确性',
+                            priority: 'medium'
+                        },
+                        {
+                            type: 'challenge',
+                            title: '尝试更高难度题目',
+                            description: '在巩固基础后，可以尝试一些综合性较强的应用题',
+                            priority: 'low'
+                        }
+                    ],
+                    learningPlan: {
+                        shortTerm: [
+                            '本周：重点复习绝对值相关知识点',
+                            '下周：加强有理数运算练习'
+                        ],
+                        mediumTerm: [
+                            '本月：完成有理数单元的全面复习',
+                            '下月：开始整式的学习'
+                        ]
+                    }
+                };
+            }
+
+            displayResult() {
+                // 显示概览数据
+                this.totalScore.textContent = this.resultData.overview.totalScore;
+                this.correctRate.textContent = this.resultData.overview.correctRate + '%';
+                
+                const minutes = Math.floor(this.resultData.overview.avgTime / 60);
+                const seconds = this.resultData.overview.avgTime % 60;
+                this.avgTime.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                const difficultyMap = {
+                    'easy': '简单',
+                    'medium': '中等',
+                    'hard': '困难'
+                };
+                this.difficulty.textContent = difficultyMap[this.resultData.overview.adaptiveDifficulty];
+
+                // 显示知识点掌握情况
+                this.displayKnowledgePoints();
+                
+                // 显示AI分析
+                this.aiAnalysisContent.innerHTML = this.resultData.aiAnalysis;
+                
+                // 显示建议
+                this.displayRecommendations();
+                
+                // 显示学习规划
+                this.displayLearningPlan();
+                
+                // 绘制能力雷达图
+                this.drawAbilityChart();
+            }
+
+            displayKnowledgePoints() {
+                this.knowledgePoints.innerHTML = '';
+                
+                this.resultData.knowledgePoints.forEach(point => {
+                    const pointElement = document.createElement('div');
+                    pointElement.className = `knowledge-point ${point.status}`;
+                    
+                    const percentage = Math.round(point.mastery * 100);
+                    
+                    pointElement.innerHTML = `
+                        <div class="point-header">
+                            <span class="point-name">${point.name}</span>
+                            <span class="point-score">${percentage}%</span>
+                        </div>
+                        <div class="point-progress">
+                            <div class="point-fill" style="width: ${percentage}%"></div>
+                        </div>
+                        <div class="point-status">
+                            ${point.correct}/${point.questions} 题正确
+                        </div>
+                    `;
+                    
+                    this.knowledgePoints.appendChild(pointElement);
+                });
+            }
+
+            displayRecommendations() {
+                this.recommendations.innerHTML = '';
+                
+                this.resultData.recommendations.forEach(rec => {
+                    const recElement = document.createElement('li');
+                    recElement.className = 'recommendation-item';
+                    
+                    const iconMap = {
+                        'review': 'refresh-cw',
+                        'practice': 'edit-3',
+                        'challenge': 'zap'
+                    };
+                    
+                    recElement.innerHTML = `
+                        <div class="rec-icon">
+                            <i data-lucide="${iconMap[rec.type]}" size="12"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 4px;">${rec.title}</div>
+                            <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">
+                                ${rec.description}
+                            </div>
+                        </div>
+                    `;
+                    
+                    this.recommendations.appendChild(recElement);
+                });
+                
+                // 重新初始化图标
+                lucide.createIcons();
+            }
+
+            displayLearningPlan() {
+                this.learningPlan.innerHTML = `
+                    <div style="margin-bottom: var(--space-lg);">
+                        <h4 style="color: var(--primary-color); margin-bottom: var(--space-sm);">近期规划</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            ${this.resultData.learningPlan.shortTerm.map(item => `
+                                <li style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm);">
+                                    <i data-lucide="check-circle" size="16" style="color: var(--success-color);"></i>
+                                    <span style="font-size: var(--font-size-sm);">${item}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 style="color: var(--primary-color); margin-bottom: var(--space-sm);">中期目标</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            ${this.resultData.learningPlan.mediumTerm.map(item => `
+                                <li style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm);">
+                                    <i data-lucide="target" size="16" style="color: var(--primary-color);"></i>
+                                    <span style="font-size: var(--font-size-sm);">${item}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+                
+                lucide.createIcons();
+            }
+
+            drawAbilityChart() {
+                const ctx = document.getElementById('abilityChart').getContext('2d');
+                
+                this.chart = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['理解能力', '应用能力', '分析能力', '计算能力', '逻辑思维'],
+                        datasets: [{
+                            label: '当前水平',
+                            data: [
+                                this.resultData.abilities.understanding,
+                                this.resultData.abilities.application,
+                                this.resultData.abilities.analysis,
+                                this.resultData.abilities.computation,
+                                this.resultData.abilities.logical
+                            ],
+                            backgroundColor: 'rgba(107, 165, 57, 0.2)',
+                            borderColor: 'rgba(107, 165, 57, 1)',
+                            pointBackgroundColor: 'rgba(107, 165, 57, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(107, 165, 57, 1)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    display: false
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                },
+                                angleLines: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            hideLoading() {
+                this.loadingSection.style.display = 'none';
+                this.resultContent.style.display = 'block';
+            }
+
+            showError() {
+                this.loadingSection.innerHTML = `
+                    <div style="text-align: center;">
+                        <i data-lucide="alert-circle" size="48" style="color: var(--error-color); margin-bottom: var(--space-md);"></i>
+                        <p>加载测评结果失败，请刷新页面重试</p>
+                    </div>
+                `;
+                lucide.createIcons();
+            }
+        }
+
+        // 生成学情白皮书
+        async function generateWhitepaper() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> 生成中...';
+            btn.disabled = true;
+            
+            try {
+                // 模拟API调用
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                alert('学情白皮书生成成功！\n已发送到您的学习档案中，老师和家长也会收到。');
+                
+                // 这里可以跳转到白皮书页面
+                // window.location.href = 'whitepaper.html';
+                
+            } catch (error) {
+                alert('生成失败，请重试');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                lucide.createIcons();
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            new AssessmentResult();
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeekerAI智能学习平台 - 学习设置</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        .settings-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: var(--space-xl);
+        }
+        
+        .settings-nav {
+            background: var(--light-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-lg);
+            height: fit-content;
+            position: sticky;
+            top: var(--space-lg);
+        }
+        
+        .settings-nav-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-md);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            margin-bottom: var(--space-xs);
+            color: var(--text-color);
+            text-decoration: none;
+        }
+        
+        .settings-nav-item:hover {
+            background: var(--light-gray);
+        }
+        
+        .settings-nav-item.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .settings-content {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xl);
+        }
+        
+        .setting-group {
+            background: var(--light-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-xl);
+        }
+        
+        .setting-group-title {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            margin-bottom: var(--space-lg);
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-lg) 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        
+        .setting-info {
+            flex: 1;
+        }
+        
+        .setting-label {
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .setting-desc {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        
+        .setting-control {
+            margin-left: var(--space-lg);
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: var(--light-gray);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+        
+        .toggle-switch.active {
+            background: var(--primary-color);
+        }
+        
+        .toggle-switch::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all var(--transition-speed);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .toggle-switch.active::before {
+            transform: translateX(24px);
+        }
+        
+        .select-control {
+            padding: var(--space-sm) var(--space-md);
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background: var(--light-color);
+            font-size: var(--font-size-sm);
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            min-width: 120px;
+        }
+        
+        .select-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .input-control {
+            padding: var(--space-sm) var(--space-md);
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background: var(--light-color);
+            font-size: var(--font-size-sm);
+            transition: all var(--transition-speed);
+            min-width: 120px;
+        }
+        
+        .input-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .time-picker {
+            display: flex;
+            gap: var(--space-sm);
+            align-items: center;
+        }
+        
+        .range-control {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 150px;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--light-gray);
+            outline: none;
+            cursor: pointer;
+        }
+        
+        .range-control::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+        }
+        
+        .range-control::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            border: none;
+        }
+        
+        .range-display {
+            margin-left: var(--space-sm);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            color: var(--primary-color);
+            min-width: 60px;
+        }
+        
+        .subject-preferences {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-md);
+        }
+        
+        .subject-pref-item {
+            background: var(--light-gray);
+            border-radius: var(--border-radius);
+            padding: var(--space-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .subject-name {
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: var(--space-md);
+            justify-content: flex-end;
+            margin-top: var(--space-xl);
+            padding-top: var(--space-lg);
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .btn-save {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: var(--space-md) var(--space-xl);
+            border-radius: var(--border-radius);
+            font-size: var(--font-size-sm);
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+        
+        .btn-save:hover {
+            background: var(--secondary-color);
+        }
+        
+        .btn-reset {
+            background: var(--light-color);
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+            padding: var(--space-md) var(--space-xl);
+            border-radius: var(--border-radius);
+            font-size: var(--font-size-sm);
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+        
+        .btn-reset:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        @media (max-width: 768px) {
+            .settings-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .settings-nav {
+                position: static;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: var(--space-sm);
+            }
+            
+            .subject-preferences {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- 侧边栏 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <img src="../teacher/img/logo.svg" alt="SeekerAI" style="height: 40px; width: auto;">
+
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i data-lucide="chevron-left"></i>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-group">
+                    <div class="nav-group-title">学习中心</div>
+                    <div class="nav-item">
+                        <a href="dashboard.html">
+                            <div class="icon"><i data-lucide="home"></i></div>
+                            <span>学习仪表盘</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="assessment.html">
+                            <div class="icon"><i data-lucide="brain"></i></div>
+                            <span>AI智能测评</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="progress.html">
+                            <div class="icon"><i data-lucide="target"></i></div>
+                            <span>学习进度</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="mistakes.html">
+                            <div class="icon"><i data-lucide="book"></i></div>
+                            <span>智能错题本</span>
+                            <span class="badge">12</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="nav-group">
+                    <div class="nav-group-title">激励系统</div>
+                    <div class="nav-item">
+                        <a href="achievements.html">
+                            <div class="icon"><i data-lucide="award"></i></div>
+                            <span>成就系统</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="leaderboard.html">
+                            <div class="icon"><i data-lucide="trophy"></i></div>
+                            <span>学习排行榜</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="challenges.html">
+                            <div class="icon"><i data-lucide="zap"></i></div>
+                            <span>每日挑战</span>
+                            <span class="badge">3</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="nav-group">
+                    <div class="nav-group-title">个人中心</div>
+                    <div class="nav-item">
+                        <a href="profile.html">
+                            <div class="icon"><i data-lucide="user"></i></div>
+                            <span>个人资料</span>
+                        </a>
+                    </div>
+                    <div class="nav-item active">
+                        <a href="settings.html">
+                            <div class="icon"><i data-lucide="settings"></i></div>
+                            <span>学习设置</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+        
+        <!-- 主内容区域 -->
+        <main class="main-content" id="mainContent">
+            <!-- 顶部导航栏 -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <div class="topbar-title">
+                        <h1>学习设置</h1>
+                    </div>
+                </div>
+                
+                <div class="topbar-right">
+                    <div class="search-box">
+                        <i data-lucide="search"></i>
+                        <input type="text" placeholder="搜索设置项...">
+                    </div>
+                    
+                    <button class="notification-btn">
+                        <i data-lucide="bell"></i>
+                        <span class="notification-badge">2</span>
+                    </button>
+                    
+                    <div class="user-profile">
+                        <div class="avatar">王小华</div>
+                        <div class="user-info">
+                            <div class="username">王小华</div>
+                            <div class="role">初二(3)班</div>
+                        </div>
+                        <i data-lucide="chevron-down"></i>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- 设置内容 -->
+            <div class="dashboard-content">
+                <div class="settings-container">
+                    <!-- 设置导航 -->
+                    <div class="settings-nav">
+                        <a href="#learning" class="settings-nav-item active" data-section="learning">
+                            <i data-lucide="brain" style="width: 16px; height: 16px;"></i>
+                            学习偏好
+                        </a>
+                        <a href="#notifications" class="settings-nav-item" data-section="notifications">
+                            <i data-lucide="bell" style="width: 16px; height: 16px;"></i>
+                            通知设置
+                        </a>
+                        <a href="#goals" class="settings-nav-item" data-section="goals">
+                            <i data-lucide="target" style="width: 16px; height: 16px;"></i>
+                            学习目标
+                        </a>
+                        <a href="#privacy" class="settings-nav-item" data-section="privacy">
+                            <i data-lucide="shield" style="width: 16px; height: 16px;"></i>
+                            隐私设置
+                        </a>
+                        <a href="#account" class="settings-nav-item" data-section="account">
+                            <i data-lucide="user" style="width: 16px; height: 16px;"></i>
+                            账户安全
+                        </a>
+                    </div>
+                    
+                    <!-- 设置内容 -->
+                    <div class="settings-content">
+                        <!-- 学习偏好设置 -->
+                        <div class="setting-group" id="learning">
+                            <h2 class="setting-group-title">
+                                <i data-lucide="brain" style="width: 20px; height: 20px;"></i>
+                                学习偏好设置
+                            </h2>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">学习难度偏好</div>
+                                    <div class="setting-desc">选择适合你的学习难度级别，系统会据此推荐相应难度的题目</div>
+                                </div>
+                                <div class="setting-control">
+                                    <select class="select-control" id="difficultyLevel">
+                                        <option value="easy">简单</option>
+                                        <option value="medium" selected>中等</option>
+                                        <option value="hard">困难</option>
+                                        <option value="adaptive">自适应</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">学习速度调节</div>
+                                    <div class="setting-desc">调整学习内容的展示速度和练习节奏</div>
+                                </div>
+                                <div class="setting-control">
+                                    <input type="range" class="range-control" id="learningSpeed" min="1" max="5" value="3">
+                                    <span class="range-display" id="speedDisplay">中等</span>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">AI智能推荐</div>
+                                    <div class="setting-desc">根据学习行为和成绩智能推荐学习内容</div>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="toggle-switch active" data-setting="aiRecommendation"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">学科优先级设置</div>
+                                    <div class="setting-desc">设置各学科的学习优先级，影响内容推荐顺序</div>
+                                </div>
+                            </div>
+                            
+                            <div class="subject-preferences">
+                                <div class="subject-pref-item">
+                                    <span class="subject-name">数学</span>
+                                    <select class="select-control">
+                                        <option value="high" selected>高</option>
+                                        <option value="medium">中</option>
+                                        <option value="low">低</option>
+                                    </select>
+                                </div>
+                                <div class="subject-pref-item">
+                                    <span class="subject-name">语文</span>
+                                    <select class="select-control">
+                                        <option value="high">高</option>
+                                        <option value="medium" selected>中</option>
+                                        <option value="low">低</option>
+                                    </select>
+                                </div>
+                                <div class="subject-pref-item">
+                                    <span class="subject-name">英语</span>
+                                    <select class="select-control">
+                                        <option value="high" selected>高</option>
+                                        <option value="medium">中</option>
+                                        <option value="low">低</option>
+                                    </select>
+                                </div>
+                                <div class="subject-pref-item">
+                                    <span class="subject-name">物理</span>
+                                    <select class="select-control">
+                                        <option value="high">高</option>
+                                        <option value="medium" selected>中</option>
+                                        <option value="low">低</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 通知设置 -->
+                        <div class="setting-group" id="notifications">
+                            <h2 class="setting-group-title">
+                                <i data-lucide="bell" style="width: 20px; height: 20px;"></i>
+                                通知设置
+                            </h2>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">学习提醒</div>
+                                    <div class="setting-desc">定时提醒你进行学习，帮助养成良好学习习惯</div>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="toggle-switch active" data-setting="studyReminder"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">提醒时间设置</div>
+                                    <div class="setting-desc">设置每日学习提醒的具体时间</div>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="time-picker">
+                                        <input type="time" class="input-control" value="19:00" id="reminderTime">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">错题复习提醒</div>
+                                    <div class="setting-desc">根据遗忘曲线智能提醒复习错题</div>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="toggle-switch active" data-setting="mistakeReviewReminder"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">成就通知</div>
+                                    <div class="setting-desc">获得新成就时接收通知</div>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="toggle-switch active" data-setting="achievementNotification"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">排行榜更新通知</div>
+                                    <div class="setting-desc">当排名发生变化时接收通知</div>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="toggle-switch" data-setting="rankingNotification"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 学习目标设置 -->
+                        <div class="setting-group" id="goals">
+                            <h2 class="setting-group-title">
+                                <i data-lucide="target" style="width: 20px; height: 20px;"></i>
+                                学习目标设置
+                            </h2>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">每日学习时长目标</div>
+                                    <div class="setting-desc">设置每天的学习时长目标</div>
+                                </div>
+                                <div class="setting-control">
+                                    <input type="range" class="range-control" id="dailyStudyTime" min="30" max="300" value="120" step="30">
+                                    <span class="range-display" id="studyTimeDisplay">2小时</span>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">每周练习题目标</div>
+                                    <div class="setting-desc">设置每周完成练习题的数量目标</div>
+                                </div>
+                                <div class="setting-control">
+                                    <input type="number" class="input-control" value="50" min="10" max="200" id="weeklyExerciseGoal">
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">目标成绩设置</div>
+                                    <div class="setting-desc">设置期望达到的平均成绩目标</div>
+                                </div>
+                                <div class="setting-control">
+                                    <select class="select-control" id="gradeGoal">
+                                        <option value="80">80分以上</option>
+                                        <option value="85" selected>85分以上</option>
+                                        <option value="90">90分以上</option>
+                                        <option value="95">95分以上</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 隐私设置 -->
+                        <div class="setting-group" id="privacy">
+                            <h2 class="setting-group-title">
+                                <i data-lucide="shield" style="width: 20px; height: 20px;"></i>
+                                隐私设置
+                            </h2>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">学习数据分享</div>
+                                    <div class="setting-desc">允许与同班同学分享学习进度和成绩</div>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="toggle-switch" data-setting="dataSharing"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">排行榜显示</div>
+                                    <div class="setting-desc">在班级排行榜中显示你的姓名和成绩</div>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="toggle-switch active" data-setting="leaderboardDisplay"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">学习分析报告</div>
+                                    <div class="setting-desc">允许生成详细的学习分析报告</div>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="toggle-switch active" data-setting="analyticsReport"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 账户安全设置 -->
+                        <div class="setting-group" id="account">
+                            <h2 class="setting-group-title">
+                                <i data-lucide="user" style="width: 20px; height: 20px;"></i>
+                                账户安全设置
+                            </h2>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">修改密码</div>
+                                    <div class="setting-desc">定期更换密码以保护账户安全</div>
+                                </div>
+                                <div class="setting-control">
+                                    <button class="btn-outline" onclick="changePassword()">修改密码</button>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">自动登录</div>
+                                    <div class="setting-desc">在此设备上保持登录状态</div>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="toggle-switch active" data-setting="autoLogin"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">登录设备管理</div>
+                                    <div class="setting-desc">查看和管理已登录的设备</div>
+                                </div>
+                                <div class="setting-control">
+                                    <button class="btn-outline" onclick="manageDevices()">管理设备</button>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-label">数据导出</div>
+                                    <div class="setting-desc">导出你的学习数据和成绩记录</div>
+                                </div>
+                                <div class="setting-control">
+                                    <button class="btn-outline" onclick="exportData()">导出数据</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 操作按钮 -->
+                        <div class="action-buttons">
+                            <button class="btn-reset" onclick="resetSettings()">恢复默认</button>
+                            <button class="btn-save" onclick="saveSettings()">保存设置</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 初始化 Lucide 图标
+        lucide.createIcons();
+        
+        // 侧边栏切换功能
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const menuToggle = document.getElementById('menuToggle');
+        
+        function toggleSidebar() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            
+            const icon = sidebarToggle.querySelector('i');
+            if (sidebar.classList.contains('collapsed')) {
+                icon.setAttribute('data-lucide', 'chevron-right');
+            } else {
+                icon.setAttribute('data-lucide', 'chevron-left');
+            }
+            lucide.createIcons();
+        }
+        
+        function toggleMobileSidebar() {
+            sidebar.classList.toggle('open');
+        }
+        
+        sidebarToggle?.addEventListener('click', toggleSidebar);
+        menuToggle?.addEventListener('click', toggleMobileSidebar);
+        
+        // 设置导航
+        const settingsNavItems = document.querySelectorAll('.settings-nav-item');
+        settingsNavItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // 更新活动状态
+                settingsNavItems.forEach(nav => nav.classList.remove('active'));
+                item.classList.add('active');
+                
+                // 滚动到对应部分
+                const targetSection = item.dataset.section;
+                const targetElement = document.getElementById(targetSection);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+        
+        // 开关切换
+        const toggleSwitches = document.querySelectorAll('.toggle-switch');
+        toggleSwitches.forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                toggle.classList.toggle('active');
+            });
+        });
+        
+        // 学习速度滑块
+        const learningSpeedSlider = document.getElementById('learningSpeed');
+        const speedDisplay = document.getElementById('speedDisplay');
+        const speedLabels = ['很慢', '慢', '中等', '快', '很快'];
+        
+        learningSpeedSlider?.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            speedDisplay.textContent = speedLabels[value - 1];
+        });
+        
+        // 学习时长滑块
+        const studyTimeSlider = document.getElementById('dailyStudyTime');
+        const studyTimeDisplay = document.getElementById('studyTimeDisplay');
+        
+        studyTimeSlider?.addEventListener('input', (e) => {
+            const minutes = parseInt(e.target.value);
+            const hours = Math.floor(minutes / 60);
+            const remainingMinutes = minutes % 60;
+            
+            if (hours > 0) {
+                studyTimeDisplay.textContent = remainingMinutes > 0 ? 
+                    `${hours}小时${remainingMinutes}分钟` : `${hours}小时`;
+            } else {
+                studyTimeDisplay.textContent = `${minutes}分钟`;
+            }
+        });
+        
+        // 功能函数
+        function changePassword() {
+            alert('跳转到修改密码页面');
+        }
+        
+        function manageDevices() {
+            alert('跳转到设备管理页面');
+        }
+        
+        function exportData() {
+            alert('开始导出学习数据...');
+        }
+        
+        function resetSettings() {
+            if (confirm('确定要恢复所有设置到默认值吗？')) {
+                alert('设置已恢复到默认值');
+                location.reload();
+            }
+        }
+        
+        function saveSettings() {
+            // 收集所有设置数据
+            const settings = {
+                difficultyLevel: document.getElementById('difficultyLevel').value,
+                learningSpeed: document.getElementById('learningSpeed').value,
+                dailyStudyTime: document.getElementById('dailyStudyTime').value,
+                weeklyExerciseGoal: document.getElementById('weeklyExerciseGoal').value,
+                gradeGoal: document.getElementById('gradeGoal').value,
+                reminderTime: document.getElementById('reminderTime').value
+            };
+            
+            // 收集开关状态
+            toggleSwitches.forEach(toggle => {
+                const setting = toggle.dataset.setting;
+                if (setting) {
+                    settings[setting] = toggle.classList.contains('active');
+                }
+            });
+            
+            console.log('保存设置:', settings);
+            alert('设置保存成功！');
+        }
+        
+        // 响应式处理
+        mainContent?.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('open');
+            }
+        });
+        
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+            }
+        });
+    </script>
+</body>
+</html> 

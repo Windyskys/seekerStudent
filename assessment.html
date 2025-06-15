@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeekerAI智能学习平台 - AI智能测评</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        .assessment-container {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: var(--space-xl);
+        }
+        
+        .assessment-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-lg);
+            margin-bottom: var(--space-xl);
+        }
+        
+        .assessment-card {
+            background: var(--light-color);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-xl);
+            border: 2px solid var(--border-color);
+            transition: all var(--transition-speed);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .assessment-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px var(--shadow-hover);
+        }
+        
+        .assessment-card.selected {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+        }
+        
+        .assessment-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto var(--space-lg);
+            border-radius: var(--border-radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .assessment-title {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            margin-bottom: var(--space-sm);
+            text-align: center;
+        }
+        
+        .assessment-desc {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: var(--space-lg);
+            line-height: 1.6;
+        }
+        
+        .assessment-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+        }
+        
+        .assessment-difficulty {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        
+        .difficulty-star {
+            width: 12px;
+            height: 12px;
+            color: var(--warning-color);
+        }
+        
+        .subject-filter {
+            display: flex;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-xl);
+            flex-wrap: wrap;
+        }
+        
+        .subject-btn {
+            padding: var(--space-sm) var(--space-lg);
+            border: 2px solid var(--border-color);
+            background: var(--light-color);
+            border-radius: var(--border-radius);
+            font-size: var(--font-size-sm);
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            color: var(--text-color);
+        }
+        
+        .subject-btn.active {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-md);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--space-sm);
+            transition: all var(--transition-speed);
+        }
+        
+        .history-item:hover {
+            border-color: var(--primary-color);
+            background: var(--light-gray);
+        }
+        
+        .history-info {
+            flex: 1;
+        }
+        
+        .history-title {
+            font-weight: 500;
+            font-size: var(--font-size-sm);
+            margin-bottom: 2px;
+        }
+        
+        .history-date {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+        }
+        
+        .history-score {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .recommendation-card {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-lg);
+        }
+        
+        .recommendation-title {
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            margin-bottom: var(--space-sm);
+        }
+        
+        .recommendation-text {
+            font-size: var(--font-size-sm);
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+        
+        @media (max-width: 768px) {
+            .assessment-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .assessment-types {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- 侧边栏 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <img src="../teacher/img/logo.svg" alt="SeekerAI" style="height: 40px; width: auto;">
+
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i data-lucide="chevron-left"></i>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-group">
+                    <div class="nav-group-title">学习中心</div>
+                    <div class="nav-item">
+                        <a href="dashboard.html">
+                            <div class="icon"><i data-lucide="home"></i></div>
+                            <span>学习仪表盘</span>
+                        </a>
+                    </div>
+                    <div class="nav-item active">
+                        <a href="assessment.html">
+                            <div class="icon"><i data-lucide="brain"></i></div>
+                            <span>AI智能测评</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="progress.html">
+                            <div class="icon"><i data-lucide="target"></i></div>
+                            <span>学习进度</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="mistakes.html">
+                            <div class="icon"><i data-lucide="book"></i></div>
+                            <span>智能错题本</span>
+                            <span class="badge">12</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="nav-group">
+                    <div class="nav-group-title">激励系统</div>
+                    <div class="nav-item">
+                        <a href="achievements.html">
+                            <div class="icon"><i data-lucide="award"></i></div>
+                            <span>成就系统</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="leaderboard.html">
+                            <div class="icon"><i data-lucide="trophy"></i></div>
+                            <span>学习排行榜</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="challenges.html">
+                            <div class="icon"><i data-lucide="zap"></i></div>
+                            <span>每日挑战</span>
+                            <span class="badge">3</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="nav-group">
+                    <div class="nav-group-title">个人中心</div>
+                    <div class="nav-item">
+                        <a href="profile.html">
+                            <div class="icon"><i data-lucide="user"></i></div>
+                            <span>个人资料</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="settings.html">
+                            <div class="icon"><i data-lucide="settings"></i></div>
+                            <span>学习设置</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+        
+        <!-- 主内容区域 -->
+        <main class="main-content" id="mainContent">
+            <!-- 顶部导航栏 -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <div class="topbar-title">
+                        <h1>AI智能测评</h1>
+                    </div>
+                </div>
+                
+                <div class="topbar-right">
+                    <div class="search-box">
+                        <i data-lucide="search"></i>
+                        <input type="text" placeholder="搜索测评题目...">
+                    </div>
+                    
+                    <button class="notification-btn">
+                        <i data-lucide="bell"></i>
+                        <span class="notification-badge">2</span>
+                    </button>
+                    
+                    <div class="user-profile">
+                        <div class="avatar">王小华</div>
+                        <div class="user-info">
+                            <div class="username">王小华</div>
+                            <div class="role">初二(3)班</div>
+                        </div>
+                        <i data-lucide="chevron-down"></i>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- 测评内容 -->
+            <div class="dashboard-content">
+                <div class="assessment-container">
+                    <!-- 主要内容 -->
+                    <div class="main-assessment">
+                        <!-- 学科筛选 -->
+                        <div class="subject-filter">
+                            <button class="subject-btn active" data-subject="all">全部</button>
+                            <button class="subject-btn" data-subject="math">数学</button>
+                            <button class="subject-btn" data-subject="chinese">语文</button>
+                            <button class="subject-btn" data-subject="english">英语</button>
+                            <button class="subject-btn" data-subject="physics">物理</button>
+                            <button class="subject-btn" data-subject="chemistry">化学</button>
+                        </div>
+                        
+                        <!-- 测评类型 -->
+                        <div class="assessment-types">
+                            <div class="assessment-card" data-type="diagnostic">
+                                <div class="assessment-icon" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);">
+                                    <i data-lucide="scan-line"></i>
+                                </div>
+                                <h3 class="assessment-title">学期摸底测评</h3>
+                                <p class="assessment-desc">
+                                    全面评估当前学习水平，识别知识薄弱环节，为后续学习提供个性化建议。
+                                </p>
+                                <div class="assessment-meta">
+                                    <span>30-45分钟</span>
+                                    <div class="assessment-difficulty">
+                                        <i data-lucide="star" class="difficulty-star"></i>
+                                        <i data-lucide="star" class="difficulty-star"></i>
+                                        <i data-lucide="star" class="difficulty-star"></i>
+                                        <i data-lucide="star" style="width: 12px; height: 12px; color: var(--border-color);"></i>
+                                        <i data-lucide="star" style="width: 12px; height: 12px; color: var(--border-color);"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="assessment-card" data-type="quick">
+                                <div class="assessment-icon" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);">
+                                    <i data-lucide="zap"></i>
+                                </div>
+                                <h3 class="assessment-title">快速能力检测</h3>
+                                <p class="assessment-desc">
+                                    短时间内快速检测特定知识点掌握情况，适合日常学习进度检查。
+                                </p>
+                                <div class="assessment-meta">
+                                    <span>10-15分钟</span>
+                                    <div class="assessment-difficulty">
+                                        <i data-lucide="star" class="difficulty-star"></i>
+                                        <i data-lucide="star" class="difficulty-star"></i>
+                                        <i data-lucide="star" style="width: 12px; height: 12px; color: var(--border-color);"></i>
+                                        <i data-lucide="star" style="width: 12px; height: 12px; color: var(--border-color);"></i>
+                                        <i data-lucide="star" style="width: 12px; height: 12px; color: var(--border-color);"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="assessment-card" data-type="adaptive">
+                                <div class="assessment-icon" style="background: linear-gradient(135deg, var(--accent-color) 0%, var(--primary-dark) 100%);">
+                                    <i data-lucide="brain"></i>
+                                </div>
+                                <h3 class="assessment-title">自适应智能测评</h3>
+                                <p class="assessment-desc">
+                                    根据答题情况动态调整题目难度，精准定位学习水平和能力边界。
+                                </p>
+                                <div class="assessment-meta">
+                                    <span>20-30分钟</span>
+                                    <div class="assessment-difficulty">
+                                        <i data-lucide="star" class="difficulty-star"></i>
+                                        <i data-lucide="star" class="difficulty-star"></i>
+                                        <i data-lucide="star" class="difficulty-star"></i>
+                                        <i data-lucide="star" class="difficulty-star"></i>
+                                        <i data-lucide="star" style="width: 12px; height: 12px; color: var(--border-color);"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="assessment-card" data-type="comprehensive">
+                                <div class="assessment-icon" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);">
+                                    <i data-lucide="book-open"></i>
+                                </div>
+                                <h3 class="assessment-title">综合能力评估</h3>
+                                <p class="assessment-desc">
+                                    全方位测试学科综合运用能力，包括理解、分析、应用等多个维度。
+                                </p>
+                                <div class="assessment-meta">
+                                    <span>45-60分钟</span>
+                                    <div class="assessment-difficulty">
+                                        <i data-lucide="star" class="difficulty-star"></i>
+                                        <i data-lucide="star" class="difficulty-star"></i>
+                                        <i data-lucide="star" class="difficulty-star"></i>
+                                        <i data-lucide="star" class="difficulty-star"></i>
+                                        <i data-lucide="star" class="difficulty-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="assessment-card" data-type="error-review">
+                                <div class="assessment-icon" style="background: linear-gradient(135deg, var(--accent-color) 0%, var(--primary-dark) 100%);">
+                                    <i data-lucide="rotate-ccw"></i>
+                                </div>
+                                <h3 class="assessment-title">错题专项测评</h3>
+                                <p class="assessment-desc">
+                                    针对历史错题和薄弱知识点进行专项测试，检验复习巩固效果。
+                                </p>
+                                <div class="assessment-meta">
+                                    <span>15-25分钟</span>
+                                    <div class="assessment-difficulty">
+                                        <i data-lucide="star" class="difficulty-star"></i>
+                                        <i data-lucide="star" class="difficulty-star"></i>
+                                        <i data-lucide="star" class="difficulty-star"></i>
+                                        <i data-lucide="star" style="width: 12px; height: 12px; color: var(--border-color);"></i>
+                                        <i data-lucide="star" style="width: 12px; height: 12px; color: var(--border-color);"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="assessment-card" data-type="practice">
+                                <div class="assessment-icon" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);">
+                                    <i data-lucide="edit-3"></i>
+                                </div>
+                                <h3 class="assessment-title">模拟练习测评</h3>
+                                <p class="assessment-desc">
+                                    模拟真实考试环境，帮助学生适应考试节奏，提升应试能力。
+                                </p>
+                                <div class="assessment-meta">
+                                    <span>60-90分钟</span>
+                                    <div class="assessment-difficulty">
+                                        <i data-lucide="star" class="difficulty-star"></i>
+                                        <i data-lucide="star" class="difficulty-star"></i>
+                                        <i data-lucide="star" class="difficulty-star"></i>
+                                        <i data-lucide="star" class="difficulty-star"></i>
+                                        <i data-lucide="star" style="width: 12px; height: 12px; color: var(--border-color);"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 开始测评按钮 -->
+                        <div style="text-align: center; margin-top: var(--space-xl);">
+                            <button class="btn btn-primary" id="startAssessment" style="padding: var(--space-lg) var(--space-2xl); font-size: var(--font-size-md);" disabled>
+                                <i data-lucide="play"></i>
+                                开始测评
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 侧边栏 -->
+                    <div class="sidebar-content">
+                        <!-- AI推荐 -->
+                        <div class="recommendation-card">
+                            <h3 class="recommendation-title">
+                                <i data-lucide="sparkles" style="width: 18px; height: 18px; margin-right: 8px;"></i>
+                                AI推荐
+                            </h3>
+                            <p class="recommendation-text">
+                                基于你的学习情况，建议先进行<strong>数学快速能力检测</strong>，了解当前掌握水平后再进行针对性练习。
+                            </p>
+                        </div>
+                        
+                        <!-- 测评历史 -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">最近测评</h3>
+                                <a href="#" style="color: var(--primary-color); font-size: var(--font-size-sm);">查看全部</a>
+                            </div>
+                            <div class="card-body">
+                                <div class="history-item">
+                                    <div class="history-info">
+                                        <div class="history-title">数学摸底测评</div>
+                                        <div class="history-date">2024年1月15日</div>
+                                    </div>
+                                    <div class="history-score">85分</div>
+                                </div>
+                                
+                                <div class="history-item">
+                                    <div class="history-info">
+                                        <div class="history-title">英语快速检测</div>
+                                        <div class="history-date">2024年1月12日</div>
+                                    </div>
+                                    <div class="history-score">92分</div>
+                                </div>
+                                
+                                <div class="history-item">
+                                    <div class="history-info">
+                                        <div class="history-title">物理能力评估</div>
+                                        <div class="history-date">2024年1月10日</div>
+                                    </div>
+                                    <div class="history-score">78分</div>
+                                </div>
+                                
+                                <div class="history-item">
+                                    <div class="history-info">
+                                        <div class="history-title">语文综合测评</div>
+                                        <div class="history-date">2024年1月8日</div>
+                                    </div>
+                                    <div class="history-score">88分</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 学习建议 -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">学习建议</h3>
+                            </div>
+                            <div class="card-body">
+                                <ul style="list-style: none; padding: 0;">
+                                    <li style="display: flex; align-items: flex-start; gap: var(--space-sm); margin-bottom: var(--space-md);">
+                                        <i data-lucide="lightbulb" style="width: 16px; height: 16px; color: var(--warning-color); flex-shrink: 0; margin-top: 2px;"></i>
+                                        <span style="font-size: var(--font-size-sm);">建议每周进行1-2次快速检测</span>
+                                    </li>
+                                    <li style="display: flex; align-items: flex-start; gap: var(--space-sm); margin-bottom: var(--space-md);">
+                                        <i data-lucide="lightbulb" style="width: 16px; height: 16px; color: var(--warning-color); flex-shrink: 0; margin-top: 2px;"></i>
+                                        <span style="font-size: var(--font-size-sm);">测评后及时查看详细报告</span>
+                                    </li>
+                                    <li style="display: flex; align-items: flex-start; gap: var(--space-sm);">
+                                        <i data-lucide="lightbulb" style="width: 16px; height: 16px; color: var(--warning-color); flex-shrink: 0; margin-top: 2px;"></i>
+                                        <span style="font-size: var(--font-size-sm);">根据测评结果调整学习计划</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 初始化 Lucide 图标
+        lucide.createIcons();
+        
+        // 侧边栏切换功能
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const menuToggle = document.getElementById('menuToggle');
+        
+        function toggleSidebar() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            
+            const icon = sidebarToggle.querySelector('i');
+            if (sidebar.classList.contains('collapsed')) {
+                icon.setAttribute('data-lucide', 'chevron-right');
+            } else {
+                icon.setAttribute('data-lucide', 'chevron-left');
+            }
+            lucide.createIcons();
+        }
+        
+        function toggleMobileSidebar() {
+            sidebar.classList.toggle('open');
+        }
+        
+        sidebarToggle?.addEventListener('click', toggleSidebar);
+        menuToggle?.addEventListener('click', toggleMobileSidebar);
+        
+        // 学科筛选功能
+        const subjectBtns = document.querySelectorAll('.subject-btn');
+        const assessmentCards = document.querySelectorAll('.assessment-card');
+        
+        subjectBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // 更新活动状态
+                subjectBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const selectedSubject = btn.dataset.subject;
+                
+                // 筛选测评卡片（这里只是示例，实际应该根据数据筛选）
+                assessmentCards.forEach(card => {
+                    if (selectedSubject === 'all') {
+                        card.style.display = 'block';
+                    } else {
+                        // 这里应该根据实际数据判断
+                        card.style.display = 'block';
+                    }
+                });
+            });
+        });
+        
+        // 测评卡片选择功能
+        const startBtn = document.getElementById('startAssessment');
+        let selectedAssessment = null;
+        
+        assessmentCards.forEach(card => {
+            card.addEventListener('click', () => {
+                // 清除其他选中状态
+                assessmentCards.forEach(c => c.classList.remove('selected'));
+                
+                // 选中当前卡片
+                card.classList.add('selected');
+                selectedAssessment = card.dataset.type;
+                
+                // 启用开始按钮
+                startBtn.disabled = false;
+            });
+        });
+        
+            // 开始测评
+            startBtn.addEventListener('click', () => {
+            if (selectedAssessment) {
+                if (selectedAssessment === 'diagnostic') {
+                    // 跳转到数学摸底测评
+                    window.location.href = 'assessment-test.html?type=diagnostic&subject=math';
+                } else {
+                    // 其他类型的测评可以后续实现
+                    alert(`开始 ${selectedAssessment} 测评！\n此功能正在开发中...`);
+                }
+            }
+        });
+        
+        // 响应式处理
+        mainContent?.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('open');
+            }
+        });
+        
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+            }
+        });
+    </script>
+</body>
+</html> 

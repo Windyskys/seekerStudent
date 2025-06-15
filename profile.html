@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeekerAI智能学习平台 - 个人资料</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        .profile-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: var(--space-xl);
+        }
+        
+        .profile-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-lg);
+        }
+        
+        .profile-card {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-xl);
+            text-align: center;
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            margin: 0 auto var(--space-md);
+            position: relative;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+        
+        .profile-avatar:hover {
+            transform: scale(1.05);
+        }
+        
+        .avatar-edit {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 24px;
+            height: 24px;
+            background: var(--warning-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+        }
+        
+        .profile-name {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .profile-class {
+            font-size: var(--font-size-sm);
+            opacity: 0.9;
+            margin-bottom: var(--space-md);
+        }
+        
+        .profile-level {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            background: rgba(255, 255, 255, 0.2);
+            padding: var(--space-xs) var(--space-md);
+            border-radius: var(--border-radius);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+        }
+        
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-sm);
+        }
+        
+        .quick-stat {
+            background: var(--light-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: var(--space-md);
+            text-align: center;
+        }
+        
+        .quick-stat-value {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .quick-stat-label {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+        }
+        
+        .profile-main {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xl);
+        }
+        
+        .info-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-lg);
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-md) 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+        
+        .info-value {
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+        }
+        
+        .edit-btn {
+            padding: var(--space-xs) var(--space-sm);
+            border: 1px solid var(--border-color);
+            background: var(--light-color);
+            border-radius: var(--border-radius);
+            font-size: var(--font-size-xs);
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        
+        .edit-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: var(--space-md);
+        }
+        
+        .achievement-badge {
+            background: var(--light-color);
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-lg);
+            text-align: center;
+            transition: all var(--transition-speed);
+            cursor: pointer;
+        }
+        
+        .achievement-badge.earned {
+            border-color: var(--warning-color);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(251, 191, 36, 0.1) 100%);
+        }
+        
+        .achievement-badge:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px var(--shadow-hover);
+        }
+        
+        .achievement-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto var(--space-sm);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--light-gray);
+            color: var(--text-secondary);
+        }
+        
+        .achievement-badge.earned .achievement-icon {
+            background: var(--warning-color);
+            color: white;
+        }
+        
+        .achievement-name {
+            font-size: var(--font-size-xs);
+            font-weight: 500;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .achievement-desc {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+        
+        .learning-timeline {
+            position: relative;
+            padding-left: var(--space-xl);
+        }
+        
+        .timeline-line {
+            position: absolute;
+            left: 16px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border-color);
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: var(--space-xl);
+        }
+        
+        .timeline-marker {
+            position: absolute;
+            left: -24px;
+            top: 4px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px var(--border-color);
+        }
+        
+        .timeline-content {
+            background: var(--light-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: var(--space-md);
+        }
+        
+        .timeline-date {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .timeline-title {
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .timeline-desc {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        
+        .stats-chart {
+            background: var(--light-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: var(--space-lg);
+            text-align: center;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .chart-placeholder {
+            color: var(--text-secondary);
+        }
+        
+        @media (max-width: 768px) {
+            .profile-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .achievements-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- 侧边栏 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <img src="../teacher/img/logo.svg" alt="SeekerAI" style="height: 40px; width: auto;">
+
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i data-lucide="chevron-left"></i>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-group">
+                    <div class="nav-group-title">学习中心</div>
+                    <div class="nav-item">
+                        <a href="dashboard.html">
+                            <div class="icon"><i data-lucide="home"></i></div>
+                            <span>学习仪表盘</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="assessment.html">
+                            <div class="icon"><i data-lucide="brain"></i></div>
+                            <span>AI智能测评</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="progress.html">
+                            <div class="icon"><i data-lucide="target"></i></div>
+                            <span>学习进度</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="mistakes.html">
+                            <div class="icon"><i data-lucide="book"></i></div>
+                            <span>智能错题本</span>
+                            <span class="badge">12</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="nav-group">
+                    <div class="nav-group-title">激励系统</div>
+                    <div class="nav-item">
+                        <a href="achievements.html">
+                            <div class="icon"><i data-lucide="award"></i></div>
+                            <span>成就系统</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="leaderboard.html">
+                            <div class="icon"><i data-lucide="trophy"></i></div>
+                            <span>学习排行榜</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="challenges.html">
+                            <div class="icon"><i data-lucide="zap"></i></div>
+                            <span>每日挑战</span>
+                            <span class="badge">3</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="nav-group">
+                    <div class="nav-group-title">个人中心</div>
+                    <div class="nav-item active">
+                        <a href="profile.html">
+                            <div class="icon"><i data-lucide="user"></i></div>
+                            <span>个人资料</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="settings.html">
+                            <div class="icon"><i data-lucide="settings"></i></div>
+                            <span>学习设置</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+        
+        <!-- 主内容区域 -->
+        <main class="main-content" id="mainContent">
+            <!-- 顶部导航栏 -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <div class="topbar-title">
+                        <h1>个人资料</h1>
+                    </div>
+                </div>
+                
+                <div class="topbar-right">
+                    <div class="search-box">
+                        <i data-lucide="search"></i>
+                        <input type="text" placeholder="搜索功能...">
+                    </div>
+                    
+                    <button class="notification-btn">
+                        <i data-lucide="bell"></i>
+                        <span class="notification-badge">2</span>
+                    </button>
+                    
+                    <div class="user-profile">
+                        <div class="avatar">王小华</div>
+                        <div class="user-info">
+                            <div class="username">王小华</div>
+                            <div class="role">初二(3)班</div>
+                        </div>
+                        <i data-lucide="chevron-down"></i>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- 个人资料内容 -->
+            <div class="dashboard-content">
+                <div class="profile-container">
+                    <!-- 左侧个人信息 -->
+                    <div class="profile-sidebar">
+                        <!-- 个人信息卡片 -->
+                        <div class="profile-card">
+                            <div class="profile-avatar" id="avatarUpload">
+                                王小华
+                                <div class="avatar-edit">
+                                    <i data-lucide="edit-2" style="width: 12px; height: 12px;"></i>
+                                </div>
+                            </div>
+                            <div class="profile-name">王小华</div>
+                            <div class="profile-class">初二(3)班</div>
+                            <div class="profile-level">
+                                <i data-lucide="star" style="width: 14px; height: 14px;"></i>
+                                学习等级 Lv.8
+                            </div>
+                        </div>
+                        
+                        <!-- 快速统计 -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">学习统计</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="quick-stats">
+                                    <div class="quick-stat">
+                                        <div class="quick-stat-value">127</div>
+                                        <div class="quick-stat-label">学习天数</div>
+                                    </div>
+                                    <div class="quick-stat">
+                                        <div class="quick-stat-value">8.5</div>
+                                        <div class="quick-stat-label">平均分</div>
+                                    </div>
+                                    <div class="quick-stat">
+                                        <div class="quick-stat-value">1247</div>
+                                        <div class="quick-stat-label">完成练习</div>
+                                    </div>
+                                    <div class="quick-stat">
+                                        <div class="quick-stat-value">23</div>
+                                        <div class="quick-stat-label">获得成就</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 本周学习时长 -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">本周学习时长</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="stats-chart">
+                                    <div class="chart-placeholder">
+                                        <i data-lucide="clock" style="width: 48px; height: 48px; margin-bottom: 16px;"></i>
+                                        <p>总计 18.5 小时</p>
+                                        <p style="font-size: 12px;">平均每天 2.6 小时</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 右侧主要内容 -->
+                    <div class="profile-main">
+                        <!-- 基本信息 -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">基本信息</h3>
+                                <button class="edit-btn" id="editProfile">
+                                    <i data-lucide="edit" style="width: 14px; height: 14px;"></i>
+                                    编辑资料
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="info-section">
+                                    <div class="info-group">
+                                        <div class="info-item">
+                                            <span class="info-label">姓名</span>
+                                            <span class="info-value">王小华</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">学号</span>
+                                            <span class="info-value">20240103</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">班级</span>
+                                            <span class="info-value">初二(3)班</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">入学时间</span>
+                                            <span class="info-value">2023年9月</span>
+                                        </div>
+                                    </div>
+                                    <div class="info-group">
+                                        <div class="info-item">
+                                            <span class="info-label">性别</span>
+                                            <span class="info-value">男</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">出生日期</span>
+                                            <span class="info-value">2009年5月15日</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">联系电话</span>
+                                            <span class="info-value">138****5678</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">邮箱地址</span>
+                                            <span class="info-value">zhang***@example.com</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 学习成就 -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">学习成就</h3>
+                                <a href="achievements.html" style="color: var(--primary-color); font-size: var(--font-size-sm);">查看全部</a>
+                            </div>
+                            <div class="card-body">
+                                <div class="achievements-grid">
+                                    <div class="achievement-badge earned">
+                                        <div class="achievement-icon">
+                                            <i data-lucide="flame" style="width: 20px; height: 20px;"></i>
+                                        </div>
+                                        <div class="achievement-name">连续学习者</div>
+                                        <div class="achievement-desc">连续学习7天</div>
+                                    </div>
+                                    
+                                    <div class="achievement-badge earned">
+                                        <div class="achievement-icon">
+                                            <i data-lucide="target" style="width: 20px; height: 20px;"></i>
+                                        </div>
+                                        <div class="achievement-name">百发百中</div>
+                                        <div class="achievement-desc">单次测评满分</div>
+                                    </div>
+                                    
+                                    <div class="achievement-badge earned">
+                                        <div class="achievement-icon">
+                                            <i data-lucide="zap" style="width: 20px; height: 20px;"></i>
+                                        </div>
+                                        <div class="achievement-name">闪电完成</div>
+                                        <div class="achievement-desc">快速完成挑战</div>
+                                    </div>
+                                    
+                                    <div class="achievement-badge earned">
+                                        <div class="achievement-icon">
+                                            <i data-lucide="book" style="width: 20px; height: 20px;"></i>
+                                        </div>
+                                        <div class="achievement-name">错题终结者</div>
+                                        <div class="achievement-desc">复习50道错题</div>
+                                    </div>
+                                    
+                                    <div class="achievement-badge">
+                                        <div class="achievement-icon">
+                                            <i data-lucide="crown" style="width: 20px; height: 20px;"></i>
+                                        </div>
+                                        <div class="achievement-name">学霸之路</div>
+                                        <div class="achievement-desc">月度排名前三</div>
+                                    </div>
+                                    
+                                    <div class="achievement-badge">
+                                        <div class="achievement-icon">
+                                            <i data-lucide="star" style="width: 20px; height: 20px;"></i>
+                                        </div>
+                                        <div class="achievement-name">全科精通</div>
+                                        <div class="achievement-desc">所有学科达到85%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 学习历程 -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">学习历程</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="learning-timeline">
+                                    <div class="timeline-line"></div>
+                                    
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker"></div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-date">2024年1月15日</div>
+                                            <div class="timeline-title">获得"连续学习者"成就</div>
+                                            <div class="timeline-desc">连续7天坚持学习，养成了良好的学习习惯！</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker"></div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-date">2024年1月10日</div>
+                                            <div class="timeline-title">数学测评取得优秀成绩</div>
+                                            <div class="timeline-desc">在二次函数单元测评中取得95分的优秀成绩。</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker"></div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-date">2024年1月5日</div>
+                                            <div class="timeline-title">完成英语语法专项练习</div>
+                                            <div class="timeline-desc">系统学习了现在完成时，掌握度提升至92%。</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker"></div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-date">2023年12月28日</div>
+                                            <div class="timeline-title">加入SeekerAI学习平台</div>
+                                            <div class="timeline-desc">开始了智能化学习之旅，欢迎来到SeekerAI！</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 初始化 Lucide 图标
+        lucide.createIcons();
+        
+        // 侧边栏切换功能
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const menuToggle = document.getElementById('menuToggle');
+        
+        function toggleSidebar() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            
+            const icon = sidebarToggle.querySelector('i');
+            if (sidebar.classList.contains('collapsed')) {
+                icon.setAttribute('data-lucide', 'chevron-right');
+            } else {
+                icon.setAttribute('data-lucide', 'chevron-left');
+            }
+            lucide.createIcons();
+        }
+        
+        function toggleMobileSidebar() {
+            sidebar.classList.toggle('open');
+        }
+        
+        sidebarToggle?.addEventListener('click', toggleSidebar);
+        menuToggle?.addEventListener('click', toggleMobileSidebar);
+        
+        // 头像上传
+        const avatarUpload = document.getElementById('avatarUpload');
+        avatarUpload?.addEventListener('click', () => {
+            // 创建文件输入元素
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            fileInput.style.display = 'none';
+            
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        // 这里可以处理头像上传逻辑
+                        alert('头像上传功能：' + file.name);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            document.body.appendChild(fileInput);
+            fileInput.click();
+            document.body.removeChild(fileInput);
+        });
+        
+        // 编辑资料
+        const editProfile = document.getElementById('editProfile');
+        editProfile?.addEventListener('click', () => {
+            alert('跳转到资料编辑页面');
+        });
+        
+        // 成就徽章点击
+        const achievementBadges = document.querySelectorAll('.achievement-badge');
+        achievementBadges.forEach(badge => {
+            badge.addEventListener('click', () => {
+                const name = badge.querySelector('.achievement-name').textContent;
+                const desc = badge.querySelector('.achievement-desc').textContent;
+                const isEarned = badge.classList.contains('earned');
+                
+                if (isEarned) {
+                    alert(`恭喜获得"${name}"成就！\n${desc}`);
+                } else {
+                    alert(`"${name}"成就\n${desc}\n\n继续努力，即将解锁！`);
+                }
+            });
+        });
+        
+        // 响应式处理
+        mainContent?.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('open');
+            }
+        });
+        
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+            }
+        });
+        
+        // 动画效果
+        const observeElements = () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('fade-in');
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.card, .timeline-item, .achievement-badge').forEach(el => {
+                observer.observe(el);
+            });
+        };
+        
+        document.addEventListener('DOMContentLoaded', observeElements);
+    </script>
+</body>
+</html> 

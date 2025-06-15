@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeekerAI智能学习平台 - 成就系统</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        .achievements-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-xl);
+            color: white;
+            margin-bottom: var(--space-xl);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .achievements-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: rotate(45deg);
+        }
+        
+        .header-content {
+            display: grid;
+            grid-template-columns: 1fr 200px;
+            gap: var(--space-xl);
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header-info h1 {
+            margin: 0 0 var(--space-sm) 0;
+            font-size: var(--font-size-xl);
+        }
+        
+        .header-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-lg);
+            margin-top: var(--space-lg);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .stat-label {
+            font-size: var(--font-size-sm);
+            opacity: 0.9;
+        }
+        
+        .level-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin: 0 auto;
+        }
+        
+        .level-number {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .level-progress {
+            position: absolute;
+            inset: -5px;
+            border-radius: 50%;
+            background: conic-gradient(#fff 0deg 216deg, rgba(255, 255, 255, 0.3) 216deg 360deg);
+            padding: 5px;
+        }
+        
+        .level-progress::before {
+            content: '';
+            position: absolute;
+            inset: 5px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        }
+        
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: var(--space-xl);
+        }
+        
+        .achievements-main {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xl);
+        }
+        
+        .achievements-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-lg);
+        }
+        
+        .filter-tabs {
+            display: flex;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-lg);
+            overflow-x: auto;
+            padding-bottom: var(--space-xs);
+        }
+        
+        .filter-tab {
+            background: var(--light-color);
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: var(--space-sm) var(--space-lg);
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            white-space: nowrap;
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+        }
+        
+        .filter-tab:hover {
+            border-color: var(--primary-color);
+        }
+        
+        .filter-tab.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .achievements-section {
+            background: var(--light-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-xl);
+        }
+        
+        .section-title {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            margin-bottom: var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .achievements-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: var(--space-lg);
+        }
+        
+        .achievement-card {
+            background: var(--light-gray);
+            border-radius: var(--border-radius);
+            padding: var(--space-lg);
+            text-align: center;
+            transition: all var(--transition-speed);
+            position: relative;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .achievement-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .achievement-card.unlocked {
+            background: linear-gradient(135deg, rgba(107, 165, 57, 0.1), rgba(139, 195, 74, 0.1));
+            border-color: var(--primary-color);
+        }
+        
+        .achievement-card.locked {
+            opacity: 0.6;
+            filter: grayscale(50%);
+        }
+        
+        .achievement-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--space-md) auto;
+            color: white;
+            font-size: 24px;
+        }
+        
+        .achievement-card.locked .achievement-icon {
+            background: var(--light-gray);
+            color: var(--text-secondary);
+        }
+        
+        .achievement-name {
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .achievement-desc {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin-bottom: var(--space-sm);
+        }
+        
+        .achievement-reward {
+            background: var(--warning-color);
+            color: white;
+            font-size: var(--font-size-xs);
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: var(--border-radius);
+            display: inline-block;
+        }
+        
+        .achievement-progress {
+            margin-top: var(--space-sm);
+        }
+        
+        .progress-bar {
+            background: var(--light-gray);
+            border-radius: var(--border-radius);
+            height: 8px;
+            overflow: hidden;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .progress-fill {
+            background: var(--primary-color);
+            height: 100%;
+            border-radius: var(--border-radius);
+            transition: width var(--transition-speed);
+        }
+        
+        .progress-text {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+        }
+        
+        .unlock-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--success-color);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        
+        .recent-achievements {
+            background: var(--light-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-lg);
+        }
+        
+        .recent-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md) 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .recent-item:last-child {
+            border-bottom: none;
+        }
+        
+        .recent-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .recent-info {
+            flex: 1;
+        }
+        
+        .recent-name {
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .recent-time {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+        }
+        
+        .leaderboard-card {
+            background: var(--light-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-lg);
+        }
+        
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-sm) 0;
+        }
+        
+        .rank-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .rank-number.top3 {
+            background: var(--warning-color);
+            color: white;
+        }
+        
+        .rank-info {
+            flex: 1;
+        }
+        
+        .rank-name {
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .rank-points {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+        }
+        
+        .points-card {
+            background: linear-gradient(135deg, var(--success-color), var(--primary-color));
+            color: white;
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-lg);
+            text-align: center;
+        }
+        
+        .points-amount {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .points-label {
+            font-size: var(--font-size-sm);
+            opacity: 0.9;
+        }
+        
+        @media (max-width: 1024px) {
+            .achievements-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .achievements-sidebar {
+                order: -1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .header-stats {
+                grid-template-columns: repeat(3, 1fr);
+                gap: var(--space-md);
+            }
+            
+            .achievements-list {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: var(--space-md);
+            }
+            
+            .filter-tabs {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- 侧边栏 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <img src="../teacher/img/logo.svg" alt="SeekerAI" style="height: 40px; width: auto;">
+
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i data-lucide="chevron-left"></i>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-group">
+                    <div class="nav-group-title">学习中心</div>
+                    <div class="nav-item">
+                        <a href="dashboard.html">
+                            <div class="icon"><i data-lucide="home"></i></div>
+                            <span>学习仪表盘</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="assessment.html">
+                            <div class="icon"><i data-lucide="brain"></i></div>
+                            <span>AI智能测评</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="progress.html">
+                            <div class="icon"><i data-lucide="target"></i></div>
+                            <span>学习进度</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="mistakes.html">
+                            <div class="icon"><i data-lucide="book"></i></div>
+                            <span>智能错题本</span>
+                            <span class="badge">12</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="nav-group">
+                    <div class="nav-group-title">激励系统</div>
+                    <div class="nav-item active">
+                        <a href="achievements.html">
+                            <div class="icon"><i data-lucide="award"></i></div>
+                            <span>成就系统</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="leaderboard.html">
+                            <div class="icon"><i data-lucide="trophy"></i></div>
+                            <span>学习排行榜</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="challenges.html">
+                            <div class="icon"><i data-lucide="zap"></i></div>
+                            <span>每日挑战</span>
+                            <span class="badge">3</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="nav-group">
+                    <div class="nav-group-title">个人中心</div>
+                    <div class="nav-item">
+                        <a href="profile.html">
+                            <div class="icon"><i data-lucide="user"></i></div>
+                            <span>个人资料</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="settings.html">
+                            <div class="icon"><i data-lucide="settings"></i></div>
+                            <span>学习设置</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+        
+        <!-- 主内容区域 -->
+        <main class="main-content" id="mainContent">
+            <!-- 顶部导航栏 -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <div class="topbar-title">
+                        <h1>成就系统</h1>
+                    </div>
+                </div>
+                
+                <div class="topbar-right">
+                    <div class="search-box">
+                        <i data-lucide="search"></i>
+                        <input type="text" placeholder="搜索成就...">
+                    </div>
+                    
+                    <button class="notification-btn">
+                        <i data-lucide="bell"></i>
+                        <span class="notification-badge">2</span>
+                    </button>
+                    
+                    <div class="user-profile">
+                        <div class="avatar">王小华</div>
+                        <div class="user-info">
+                            <div class="username">王小华</div>
+                            <div class="role">初二(3)班</div>
+                        </div>
+                        <i data-lucide="chevron-down"></i>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- 成就系统内容 -->
+            <div class="dashboard-content">
+                <!-- 成就概览 -->
+                <div class="achievements-header">
+                    <div class="header-content">
+                        <div class="header-info">
+                            <h1>恭喜你，学习大师！</h1>
+                            <p>你已经获得了 15 个成就，继续努力解锁更多精彩成就吧！</p>
+                            <div class="header-stats">
+                                <div class="stat-item">
+                                    <div class="stat-number">2,450</div>
+                                    <div class="stat-label">总积分</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">15/42</div>
+                                    <div class="stat-label">已获成就</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">7</div>
+                                    <div class="stat-label">连续打卡</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="level-circle">
+                            <div class="level-progress"></div>
+                            <div class="level-number">8</div>
+                            <div class="level-label">学者</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="achievements-grid">
+                    <!-- 主要成就区域 -->
+                    <div class="achievements-main">
+                        <!-- 筛选标签 -->
+                        <div class="filter-tabs">
+                            <button class="filter-tab active" data-category="all">全部成就</button>
+                            <button class="filter-tab" data-category="learning">学习成就</button>
+                            <button class="filter-tab" data-category="progress">进步成就</button>
+                            <button class="filter-tab" data-category="persistence">坚持成就</button>
+                            <button class="filter-tab" data-category="special">特殊成就</button>
+                        </div>
+                        
+                        <!-- 学习成就 -->
+                        <div class="achievements-section" data-category="learning">
+                            <h2 class="section-title">
+                                <i data-lucide="graduation-cap" style="width: 20px; height: 20px;"></i>
+                                学习成就
+                            </h2>
+                            <div class="achievements-list">
+                                <div class="achievement-card unlocked">
+                                    <div class="unlock-badge">
+                                        <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+                                    </div>
+                                    <div class="achievement-icon">
+                                        <i data-lucide="book-open" style="width: 24px; height: 24px;"></i>
+                                    </div>
+                                    <div class="achievement-name">初学者</div>
+                                    <div class="achievement-desc">完成第一次AI测评</div>
+                                    <div class="achievement-reward">+50积分</div>
+                                </div>
+                                
+                                <div class="achievement-card unlocked">
+                                    <div class="unlock-badge">
+                                        <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+                                    </div>
+                                    <div class="achievement-icon">
+                                        <i data-lucide="target" style="width: 24px; height: 24px;"></i>
+                                    </div>
+                                    <div class="achievement-name">神射手</div>
+                                    <div class="achievement-desc">单次测评正确率达到90%</div>
+                                    <div class="achievement-reward">+100积分</div>
+                                </div>
+                                
+                                <div class="achievement-card unlocked">
+                                    <div class="unlock-badge">
+                                        <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+                                    </div>
+                                    <div class="achievement-icon">
+                                        <i data-lucide="brain" style="width: 24px; height: 24px;"></i>
+                                    </div>
+                                    <div class="achievement-name">数学天才</div>
+                                    <div class="achievement-desc">数学学科平均分超过85分</div>
+                                    <div class="achievement-reward">+150积分</div>
+                                </div>
+                                
+                                <div class="achievement-card locked">
+                                    <div class="achievement-icon">
+                                        <i data-lucide="trophy" style="width: 24px; height: 24px;"></i>
+                                    </div>
+                                    <div class="achievement-name">学霸</div>
+                                    <div class="achievement-desc">所有学科平均分超过90分</div>
+                                    <div class="achievement-reward">+300积分</div>
+                                    <div class="achievement-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 75%;"></div>
+                                        </div>
+                                        <div class="progress-text">3/4 学科达标</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="achievement-card locked">
+                                    <div class="achievement-icon">
+                                        <i data-lucide="star" style="width: 24px; height: 24px;"></i>
+                                    </div>
+                                    <div class="achievement-name">满分王者</div>
+                                    <div class="achievement-desc">获得10次满分成绩</div>
+                                    <div class="achievement-reward">+500积分</div>
+                                    <div class="achievement-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 40%;"></div>
+                                        </div>
+                                        <div class="progress-text">4/10 次满分</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="achievement-card locked">
+                                    <div class="achievement-icon">
+                                        <i data-lucide="zap" style="width: 24px; height: 24px;"></i>
+                                    </div>
+                                    <div class="achievement-name">速度之星</div>
+                                    <div class="achievement-desc">5分钟内完成一套练习题</div>
+                                    <div class="achievement-reward">+200积分</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 进步成就 -->
+                        <div class="achievements-section" data-category="progress">
+                            <h2 class="section-title">
+                                <i data-lucide="trending-up" style="width: 20px; height: 20px;"></i>
+                                进步成就
+                            </h2>
+                            <div class="achievements-list">
+                                <div class="achievement-card unlocked">
+                                    <div class="unlock-badge">
+                                        <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+                                    </div>
+                                    <div class="achievement-icon">
+                                        <i data-lucide="arrow-up" style="width: 24px; height: 24px;"></i>
+                                    </div>
+                                    <div class="achievement-name">稳步前进</div>
+                                    <div class="achievement-desc">连续3次测评成绩提升</div>
+                                    <div class="achievement-reward">+100积分</div>
+                                </div>
+                                
+                                <div class="achievement-card unlocked">
+                                    <div class="unlock-badge">
+                                        <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+                                    </div>
+                                    <div class="achievement-icon">
+                                        <i data-lucide="trending-up" style="width: 24px; height: 24px;"></i>
+                                    </div>
+                                    <div class="achievement-name">突飞猛进</div>
+                                    <div class="achievement-desc">单次成绩提升超过20分</div>
+                                    <div class="achievement-reward">+200积分</div>
+                                </div>
+                                
+                                <div class="achievement-card locked">
+                                    <div class="achievement-icon">
+                                        <i data-lucide="rocket" style="width: 24px; height: 24px;"></i>
+                                    </div>
+                                    <div class="achievement-name">火箭式进步</div>
+                                    <div class="achievement-desc">月度平均分提升30分以上</div>
+                                    <div class="achievement-reward">+400积分</div>
+                                    <div class="achievement-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 60%;"></div>
+                                        </div>
+                                        <div class="progress-text">提升18分/30分</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="achievement-card locked">
+                                    <div class="achievement-icon">
+                                        <i data-lucide="award" style="width: 24px; height: 24px;"></i>
+                                    </div>
+                                    <div class="achievement-name">逆袭王者</div>
+                                    <div class="achievement-desc">从班级后50%进入前10%</div>
+                                    <div class="achievement-reward">+600积分</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 坚持成就 -->
+                        <div class="achievements-section" data-category="persistence">
+                            <h2 class="section-title">
+                                <i data-lucide="calendar-check" style="width: 20px; height: 20px;"></i>
+                                坚持成就
+                            </h2>
+                            <div class="achievements-list">
+                                <div class="achievement-card unlocked">
+                                    <div class="unlock-badge">
+                                        <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+                                    </div>
+                                    <div class="achievement-icon">
+                                        <i data-lucide="calendar" style="width: 24px; height: 24px;"></i>
+                                    </div>
+                                    <div class="achievement-name">坚持就是胜利</div>
+                                    <div class="achievement-desc">连续学习7天</div>
+                                    <div class="achievement-reward">+100积分</div>
+                                </div>
+                                
+                                <div class="achievement-card unlocked">
+                                    <div class="unlock-badge">
+                                        <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+                                    </div>
+                                    <div class="achievement-icon">
+                                        <i data-lucide="clock" style="width: 24px; height: 24px;"></i>
+                                    </div>
+                                    <div class="achievement-name">时间管理大师</div>
+                                    <div class="achievement-desc">累计学习时长达到100小时</div>
+                                    <div class="achievement-reward">+250积分</div>
+                                </div>
+                                
+                                <div class="achievement-card locked">
+                                    <div class="achievement-icon">
+                                        <i data-lucide="flame" style="width: 24px; height: 24px;"></i>
+                                    </div>
+                                    <div class="achievement-name">学习狂人</div>
+                                    <div class="achievement-desc">连续学习30天</div>
+                                    <div class="achievement-reward">+500积分</div>
+                                    <div class="achievement-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 23%;"></div>
+                                        </div>
+                                        <div class="progress-text">7/30 天</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="achievement-card locked">
+                                    <div class="achievement-icon">
+                                        <i data-lucide="infinity" style="width: 24px; height: 24px;"></i>
+                                    </div>
+                                    <div class="achievement-name">百日成就</div>
+                                    <div class="achievement-desc">连续学习100天</div>
+                                    <div class="achievement-reward">+1000积分</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 特殊成就 -->
+                        <div class="achievements-section" data-category="special">
+                            <h2 class="section-title">
+                                <i data-lucide="gem" style="width: 20px; height: 20px;"></i>
+                                特殊成就
+                            </h2>
+                            <div class="achievements-list">
+                                <div class="achievement-card unlocked">
+                                    <div class="unlock-badge">
+                                        <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+                                    </div>
+                                    <div class="achievement-icon">
+                                        <i data-lucide="users" style="width: 24px; height: 24px;"></i>
+                                    </div>
+                                    <div class="achievement-name">互助精神</div>
+                                    <div class="achievement-desc">帮助同学解答10个问题</div>
+                                    <div class="achievement-reward">+150积分</div>
+                                </div>
+                                
+                                <div class="achievement-card unlocked">
+                                    <div class="unlock-badge">
+                                        <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+                                    </div>
+                                    <div class="achievement-icon">
+                                        <i data-lucide="heart" style="width: 24px; height: 24px;"></i>
+                                    </div>
+                                    <div class="achievement-name">早起鸟儿</div>
+                                    <div class="achievement-desc">连续7天在早上7点前学习</div>
+                                    <div class="achievement-reward">+200积分</div>
+                                </div>
+                                
+                                <div class="achievement-card locked">
+                                    <div class="achievement-icon">
+                                        <i data-lucide="crown" style="width: 24px; height: 24px;"></i>
+                                    </div>
+                                    <div class="achievement-name">班级第一</div>
+                                    <div class="achievement-desc">在班级排行榜中获得第一名</div>
+                                    <div class="achievement-reward">+800积分</div>
+                                </div>
+                                
+                                <div class="achievement-card locked">
+                                    <div class="achievement-icon">
+                                        <i data-lucide="gift" style="width: 24px; height: 24px;"></i>
+                                    </div>
+                                    <div class="achievement-name">生日惊喜</div>
+                                    <div class="achievement-desc">在生日当天完成学习任务</div>
+                                    <div class="achievement-reward">+100积分</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 侧边栏 -->
+                    <div class="achievements-sidebar">
+                        <!-- 积分卡片 -->
+                        <div class="points-card">
+                            <div class="points-amount">2,450</div>
+                            <div class="points-label">总积分</div>
+                        </div>
+                        
+                        <!-- 最近获得成就 -->
+                        <div class="recent-achievements">
+                            <h3 class="section-title">最近获得</h3>
+                            <div class="recent-item">
+                                <div class="recent-icon">
+                                    <i data-lucide="heart" style="width: 20px; height: 20px;"></i>
+                                </div>
+                                <div class="recent-info">
+                                    <div class="recent-name">早起鸟儿</div>
+                                    <div class="recent-time">2小时前</div>
+                                </div>
+                            </div>
+                            <div class="recent-item">
+                                <div class="recent-icon">
+                                    <i data-lucide="trending-up" style="width: 20px; height: 20px;"></i>
+                                </div>
+                                <div class="recent-info">
+                                    <div class="recent-name">突飞猛进</div>
+                                    <div class="recent-time">1天前</div>
+                                </div>
+                            </div>
+                            <div class="recent-item">
+                                <div class="recent-icon">
+                                    <i data-lucide="users" style="width: 20px; height: 20px;"></i>
+                                </div>
+                                <div class="recent-info">
+                                    <div class="recent-name">互助精神</div>
+                                    <div class="recent-time">3天前</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 成就排行榜 -->
+                        <div class="leaderboard-card">
+                            <h3 class="section-title">成就排行榜</h3>
+                            <div class="leaderboard-item">
+                                <div class="rank-number top3">1</div>
+                                <div class="rank-info">
+                                    <div class="rank-name">李明</div>
+                                    <div class="rank-points">3,250积分 • 28成就</div>
+                                </div>
+                            </div>
+                            <div class="leaderboard-item">
+                                <div class="rank-number top3">2</div>
+                                <div class="rank-info">
+                                    <div class="rank-name">王小红</div>
+                                    <div class="rank-points">2,890积分 • 22成就</div>
+                                </div>
+                            </div>
+                            <div class="leaderboard-item">
+                                <div class="rank-number top3">3</div>
+                                <div class="rank-info">
+                                    <div class="rank-name">王小华</div>
+                                    <div class="rank-points">2,450积分 • 15成就</div>
+                                </div>
+                            </div>
+                            <div class="leaderboard-item">
+                                <div class="rank-number">4</div>
+                                <div class="rank-info">
+                                    <div class="rank-name">刘美丽</div>
+                                    <div class="rank-points">2,100积分 • 18成就</div>
+                                </div>
+                            </div>
+                            <div class="leaderboard-item">
+                                <div class="rank-number">5</div>
+                                <div class="rank-info">
+                                    <div class="rank-name">陈大强</div>
+                                    <div class="rank-points">1,850积分 • 12成就</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 初始化 Lucide 图标
+        lucide.createIcons();
+        
+        // 侧边栏切换功能
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const menuToggle = document.getElementById('menuToggle');
+        
+        function toggleSidebar() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            
+            const icon = sidebarToggle.querySelector('i');
+            if (sidebar.classList.contains('collapsed')) {
+                icon.setAttribute('data-lucide', 'chevron-right');
+            } else {
+                icon.setAttribute('data-lucide', 'chevron-left');
+            }
+            lucide.createIcons();
+        }
+        
+        function toggleMobileSidebar() {
+            sidebar.classList.toggle('open');
+        }
+        
+        sidebarToggle?.addEventListener('click', toggleSidebar);
+        menuToggle?.addEventListener('click', toggleMobileSidebar);
+        
+        // 筛选功能
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const achievementSections = document.querySelectorAll('.achievements-section');
+        
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // 更新活动标签
+                filterTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                const category = tab.dataset.category;
+                
+                // 显示/隐藏相应的成就分组
+                achievementSections.forEach(section => {
+                    if (category === 'all' || section.dataset.category === category) {
+                        section.style.display = 'block';
+                    } else {
+                        section.style.display = 'none';
+                    }
+                });
+            });
+        });
+        
+        // 成就卡片点击事件
+        const achievementCards = document.querySelectorAll('.achievement-card');
+        achievementCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const isUnlocked = card.classList.contains('unlocked');
+                const achievementName = card.querySelector('.achievement-name').textContent;
+                const achievementDesc = card.querySelector('.achievement-desc').textContent;
+                
+                if (isUnlocked) {
+                    showAchievementDetail(achievementName, achievementDesc, true);
+                } else {
+                    showAchievementDetail(achievementName, achievementDesc, false);
+                }
+            });
+        });
+        
+        // 显示成就详情
+        function showAchievementDetail(name, desc, unlocked) {
+            const status = unlocked ? '已获得' : '未获得';
+            const message = `成就：${name}\n描述：${desc}\n状态：${status}`;
+            alert(message);
+        }
+        
+        // 搜索功能
+        const searchInput = document.querySelector('.search-box input');
+        searchInput?.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            achievementCards.forEach(card => {
+                const name = card.querySelector('.achievement-name').textContent.toLowerCase();
+                const desc = card.querySelector('.achievement-desc').textContent.toLowerCase();
+                
+                if (name.includes(searchTerm) || desc.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+        
+        // 响应式处理
+        mainContent?.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('open');
+            }
+        });
+        
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+            }
+        });
+        
+        // 模拟成就解锁动画
+        function unlockAchievement(achievementName) {
+            // 这里可以添加成就解锁的动画效果
+            console.log(`恭喜！你获得了成就：${achievementName}`);
+        }
+        
+        // 模拟等级进度更新
+        function updateLevelProgress() {
+            const levelProgress = document.querySelector('.level-progress');
+            // 这里可以根据实际积分计算等级进度
+            console.log('等级进度已更新');
+        }
+    </script>
+</body>
+</html> 

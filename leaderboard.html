@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeekerAI智能学习平台 - 学习排行榜</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        .leaderboard-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-xl);
+            color: white;
+            margin-bottom: var(--space-xl);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .leaderboard-header::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header-title {
+            font-size: var(--font-size-xl);
+            margin-bottom: var(--space-sm);
+        }
+        
+        .header-subtitle {
+            opacity: 0.9;
+            margin-bottom: var(--space-lg);
+        }
+        
+        .my-rank-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: var(--border-radius);
+            padding: var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-lg);
+        }
+        
+        .rank-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        
+        .rank-info {
+            flex: 1;
+        }
+        
+        .rank-position {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .rank-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-lg);
+            margin-top: var(--space-md);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .stat-label {
+            font-size: var(--font-size-sm);
+            opacity: 0.8;
+        }
+        
+        .leaderboard-controls {
+            display: flex;
+            gap: var(--space-lg);
+            margin-bottom: var(--space-xl);
+            flex-wrap: wrap;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+        
+        .control-label {
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        
+        .control-tabs {
+            display: flex;
+            gap: var(--space-sm);
+        }
+        
+        .control-tab {
+            background: var(--light-color);
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: var(--space-sm) var(--space-lg);
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        
+        .control-tab:hover {
+            border-color: var(--primary-color);
+        }
+        
+        .control-tab.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .leaderboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: var(--space-xl);
+        }
+        
+        .leaderboard-main {
+            background: var(--light-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+        }
+        
+        .leaderboard-title {
+            padding: var(--space-lg);
+            border-bottom: 1px solid var(--border-color);
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .podium {
+            padding: var(--space-xl);
+            display: flex;
+            justify-content: center;
+            align-items: end;
+            gap: var(--space-lg);
+            margin-bottom: var(--space-lg);
+        }
+        
+        .podium-item {
+            text-align: center;
+            position: relative;
+        }
+        
+        .podium-rank {
+            width: 80px;
+            height: var(--podium-height, 80px);
+            background: var(--podium-color, var(--light-gray));
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: var(--font-size-lg);
+            margin-bottom: var(--space-md);
+        }
+        
+        .podium-item:nth-child(2) {
+            --podium-height: 120px;
+            --podium-color: #ffd700;
+            order: -1;
+        }
+        
+        .podium-item:nth-child(1) {
+            --podium-height: 100px;
+            --podium-color: #c0c0c0;
+        }
+        
+        .podium-item:nth-child(3) {
+            --podium-height: 80px;
+            --podium-color: #cd7f32;
+        }
+        
+        .podium-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--space-sm) auto;
+            font-weight: 600;
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 3px solid white;
+        }
+        
+        .podium-name {
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .podium-score {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+        }
+        
+        .ranking-list {
+            padding: 0;
+        }
+        
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md) var(--space-lg);
+            border-bottom: 1px solid var(--border-color);
+            transition: all var(--transition-speed);
+        }
+        
+        .ranking-item:hover {
+            background: var(--light-gray);
+        }
+        
+        .ranking-item.my-rank {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(139, 92, 246, 0.1));
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .rank-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .rank-number.top10 {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .rank-number.top3 {
+            background: var(--warning-color);
+            color: white;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--secondary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .user-info {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .user-class {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+        }
+        
+        .score-info {
+            text-align: right;
+        }
+        
+        .score-value {
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .score-change {
+            font-size: var(--font-size-xs);
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            justify-content: flex-end;
+        }
+        
+        .score-up {
+            color: var(--success-color);
+        }
+        
+        .score-down {
+            color: var(--error-color);
+        }
+        
+        .leaderboard-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-lg);
+        }
+        
+        .sidebar-card {
+            background: var(--light-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-lg);
+        }
+        
+        .card-title {
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            margin-bottom: var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .trend-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md) 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .trend-item:last-child {
+            border-bottom: none;
+        }
+        
+        .trend-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .trend-up {
+            background: var(--success-color);
+            color: white;
+        }
+        
+        .trend-down {
+            background: var(--error-color);
+            color: white;
+        }
+        
+        .trend-info {
+            flex: 1;
+        }
+        
+        .trend-name {
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .trend-detail {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+        }
+        
+        .weekly-goal {
+            background: linear-gradient(135deg, var(--success-color), var(--primary-color));
+            color: white;
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-lg);
+            text-align: center;
+            margin-bottom: var(--space-lg);
+        }
+        
+        .goal-title {
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            margin-bottom: var(--space-md);
+        }
+        
+        .goal-progress {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: var(--border-radius);
+            height: 20px;
+            margin-bottom: var(--space-md);
+            overflow: hidden;
+        }
+        
+        .goal-progress-fill {
+            background: white;
+            height: 100%;
+            border-radius: var(--border-radius);
+            transition: width var(--transition-speed);
+        }
+        
+        .goal-text {
+            font-size: var(--font-size-sm);
+            opacity: 0.9;
+        }
+        
+        @media (max-width: 1024px) {
+            .leaderboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .leaderboard-sidebar {
+                order: -1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .leaderboard-controls {
+                flex-direction: column;
+                gap: var(--space-md);
+            }
+            
+            .control-tabs {
+                overflow-x: auto;
+                padding-bottom: var(--space-xs);
+            }
+            
+            .rank-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .podium {
+                padding: var(--space-lg);
+                gap: var(--space-md);
+            }
+            
+            .podium-rank {
+                width: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- 侧边栏 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <img src="../teacher/img/logo.svg" alt="SeekerAI" style="height: 40px; width: auto;">
+
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i data-lucide="chevron-left"></i>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-group">
+                    <div class="nav-group-title">学习中心</div>
+                    <div class="nav-item">
+                        <a href="dashboard.html">
+                            <div class="icon"><i data-lucide="home"></i></div>
+                            <span>学习仪表盘</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="assessment.html">
+                            <div class="icon"><i data-lucide="brain"></i></div>
+                            <span>AI智能测评</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="progress.html">
+                            <div class="icon"><i data-lucide="target"></i></div>
+                            <span>学习进度</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="mistakes.html">
+                            <div class="icon"><i data-lucide="book"></i></div>
+                            <span>智能错题本</span>
+                            <span class="badge">12</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="nav-group">
+                    <div class="nav-group-title">激励系统</div>
+                    <div class="nav-item">
+                        <a href="achievements.html">
+                            <div class="icon"><i data-lucide="award"></i></div>
+                            <span>成就系统</span>
+                        </a>
+                    </div>
+                    <div class="nav-item active">
+                        <a href="leaderboard.html">
+                            <div class="icon"><i data-lucide="trophy"></i></div>
+                            <span>学习排行榜</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="challenges.html">
+                            <div class="icon"><i data-lucide="zap"></i></div>
+                            <span>每日挑战</span>
+                            <span class="badge">3</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="nav-group">
+                    <div class="nav-group-title">个人中心</div>
+                    <div class="nav-item">
+                        <a href="profile.html">
+                            <div class="icon"><i data-lucide="user"></i></div>
+                            <span>个人资料</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="settings.html">
+                            <div class="icon"><i data-lucide="settings"></i></div>
+                            <span>学习设置</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+        
+        <!-- 主内容区域 -->
+        <main class="main-content" id="mainContent">
+            <!-- 顶部导航栏 -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <div class="topbar-title">
+                        <h1>学习排行榜</h1>
+                    </div>
+                </div>
+                
+                <div class="topbar-right">
+                    <div class="search-box">
+                        <i data-lucide="search"></i>
+                        <input type="text" placeholder="搜索同学...">
+                    </div>
+                    
+                    <button class="notification-btn">
+                        <i data-lucide="bell"></i>
+                        <span class="notification-badge">2</span>
+                    </button>
+                    
+                    <div class="user-profile">
+                        <div class="avatar">王小华</div>
+                        <div class="user-info">
+                            <div class="username">王小华</div>
+                            <div class="role">初二(3)班</div>
+                        </div>
+                        <i data-lucide="chevron-down"></i>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- 排行榜内容 -->
+            <div class="dashboard-content">
+                <!-- 排行榜头部 -->
+                <div class="leaderboard-header">
+                    <div class="header-content">
+                        <h1 class="header-title">本周学习排行榜</h1>
+                        <p class="header-subtitle">与同学们一起努力，共同进步！记住，学习不是为了竞争，而是为了成长。</p>
+                        
+                        <div class="my-rank-card">
+                            <div class="rank-circle">3</div>
+                            <div class="rank-info">
+                                <div class="rank-position">你当前排名第3位</div>
+                                <div class="rank-stats">
+                                    <div class="stat-item">
+                                        <div class="stat-number">28.5h</div>
+                                        <div class="stat-label">学习时长</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-number">+15</div>
+                                        <div class="stat-label">本周进步</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-number">2,450</div>
+                                        <div class="stat-label">总积分</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 控制面板 -->
+                <div class="leaderboard-controls">
+                    <div class="control-group">
+                        <div class="control-label">排行榜类型</div>
+                        <div class="control-tabs">
+                            <button class="control-tab active" data-type="study-time">学习时长</button>
+                            <button class="control-tab" data-type="progress">学习进步</button>
+                            <button class="control-tab" data-type="points">积分排行</button>
+                            <button class="control-tab" data-type="challenges">挑战完成</button>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <div class="control-label">排名范围</div>
+                        <div class="control-tabs">
+                            <button class="control-tab active" data-scope="class">班级</button>
+                            <button class="control-tab" data-scope="grade">年级</button>
+                            <button class="control-tab" data-scope="school">全校</button>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <div class="control-label">时间周期</div>
+                        <div class="control-tabs">
+                            <button class="control-tab" data-period="daily">今日</button>
+                            <button class="control-tab active" data-period="weekly">本周</button>
+                            <button class="control-tab" data-period="monthly">本月</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="leaderboard-grid">
+                    <!-- 主排行榜 -->
+                    <div class="leaderboard-main">
+                        <div class="leaderboard-title">
+                            <i data-lucide="clock" style="width: 20px; height: 20px;"></i>
+                            学习时长排行榜 - 初二(3)班
+                        </div>
+                        
+                        <!-- 前三名领奖台 -->
+                        <div class="podium">
+                            <div class="podium-item">
+                                <div class="podium-avatar">王</div>
+                                <div class="podium-rank">2</div>
+                                <div class="podium-name">王小红</div>
+                                <div class="podium-score">29.2小时</div>
+                            </div>
+                            <div class="podium-item">
+                                <div class="podium-avatar">李</div>
+                                <div class="podium-rank">1</div>
+                                <div class="podium-name">李明</div>
+                                <div class="podium-score">32.8小时</div>
+                            </div>
+                            <div class="podium-item">
+                                <div class="podium-avatar">张</div>
+                                <div class="podium-rank">3</div>
+                                <div class="podium-name">王小华</div>
+                                <div class="podium-score">28.5小时</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 排名列表 -->
+                        <div class="ranking-list">
+                            <div class="ranking-item my-rank">
+                                <div class="rank-number top3">3</div>
+                                <div class="user-avatar">张</div>
+                                <div class="user-info">
+                                    <div class="user-name">王小华（我）</div>
+                                    <div class="user-class">初二(3)班</div>
+                                </div>
+                                <div class="score-info">
+                                    <div class="score-value">28.5小时</div>
+                                    <div class="score-change score-up">
+                                        <i data-lucide="arrow-up" style="width: 12px; height: 12px;"></i>
+                                        +2位
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="ranking-item">
+                                <div class="rank-number">4</div>
+                                <div class="user-avatar">刘</div>
+                                <div class="user-info">
+                                    <div class="user-name">刘美丽</div>
+                                    <div class="user-class">初二(3)班</div>
+                                </div>
+                                <div class="score-info">
+                                    <div class="score-value">27.8小时</div>
+                                    <div class="score-change score-down">
+                                        <i data-lucide="arrow-down" style="width: 12px; height: 12px;"></i>
+                                        -1位
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="ranking-item">
+                                <div class="rank-number">5</div>
+                                <div class="user-avatar">赵</div>
+                                <div class="user-info">
+                                    <div class="user-name">赵小明</div>
+                                    <div class="user-class">初二(3)班</div>
+                                </div>
+                                <div class="score-info">
+                                    <div class="score-value">27.2小时</div>
+                                    <div class="score-change score-down">
+                                        <i data-lucide="arrow-down" style="width: 12px; height: 12px;"></i>
+                                        -2位
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="ranking-item">
+                                <div class="rank-number">6</div>
+                                <div class="user-avatar">周</div>
+                                <div class="user-info">
+                                    <div class="user-name">周小伟</div>
+                                    <div class="user-class">初二(3)班</div>
+                                </div>
+                                <div class="score-info">
+                                    <div class="score-value">26.5小时</div>
+                                    <div class="score-change score-down">
+                                        <i data-lucide="arrow-down" style="width: 12px; height: 12px;"></i>
+                                        -3位
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="ranking-item">
+                                <div class="rank-number">7</div>
+                                <div class="user-avatar">吴</div>
+                                <div class="user-info">
+                                    <div class="user-name">吴小琳</div>
+                                    <div class="user-class">初二(3)班</div>
+                                </div>
+                                <div class="score-info">
+                                    <div class="score-value">26.0小时</div>
+                                    <div class="score-change score-down">
+                                        <i data-lucide="arrow-down" style="width: 12px; height: 12px;"></i>
+                                        -4位
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="ranking-item">
+                                <div class="rank-number">8</div>
+                                <div class="user-avatar">郑</div>
+                                <div class="user-info">
+                                    <div class="user-name">郑小刚</div>
+                                    <div class="user-class">初二(3)班</div>
+                                </div>
+                                <div class="score-info">
+                                    <div class="score-value">25.5小时</div>
+                                    <div class="score-change score-down">
+                                        <i data-lucide="arrow-down" style="width: 12px; height: 12px;"></i>
+                                        -5位
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="ranking-item">
+                                <div class="rank-number">9</div>
+                                <div class="user-avatar">钱</div>
+                                <div class="user-info">
+                                    <div class="user-name">钱小芳</div>
+                                    <div class="user-class">初二(3)班</div>
+                                </div>
+                                <div class="score-info">
+                                    <div class="score-value">25.0小时</div>
+                                    <div class="score-change score-down">
+                                        <i data-lucide="arrow-down" style="width: 12px; height: 12px;"></i>
+                                        -6位
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="ranking-item">
+                                <div class="rank-number">10</div>
+                                <div class="user-avatar">孙</div>
+                                <div class="user-info">
+                                    <div class="user-name">孙小华</div>
+                                    <div class="user-class">初二(3)班</div>
+                                </div>
+                                <div class="score-info">
+                                    <div class="score-value">24.5小时</div>
+                                    <div class="score-change score-down">
+                                        <i data-lucide="arrow-down" style="width: 12px; height: 12px;"></i>
+                                        -7位
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 侧边栏 -->
+                    <div class="leaderboard-sidebar">
+                        <div class="sidebar-card">
+                            <div class="card-title">
+                                <i data-lucide="trending-up" style="width: 20px; height: 20px;"></i>
+                                本周上升最快
+                            </div>
+                            <div class="trend-item">
+                                <div class="trend-icon trend-up">
+                                    <i data-lucide="arrow-up"></i>
+                                </div>
+                                <div class="trend-info">
+                                    <div class="trend-name">王小华</div>
+                                    <div class="trend-detail">+10位</div>
+                                </div>
+                            </div>
+                            <div class="trend-item">
+                                <div class="trend-icon trend-up">
+                                    <i data-lucide="arrow-up"></i>
+                                </div>
+                                <div class="trend-info">
+                                    <div class="trend-name">李四</div>
+                                    <div class="trend-detail">+8位</div>
+                                </div>
+                            </div>
+                            <div class="trend-item">
+                                <div class="trend-icon trend-up">
+                                    <i data-lucide="arrow-up"></i>
+                                </div>
+                                <div class="trend-info">
+                                    <div class="trend-name">王五</div>
+                                    <div class="trend-detail">+6位</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="sidebar-card">
+                            <div class="card-title">
+                                <i data-lucide="trending-down" style="width: 20px; height: 20px;"></i>
+                                本周下降最快
+                            </div>
+                            <div class="trend-item">
+                                <div class="trend-icon trend-down">
+                                    <i data-lucide="arrow-down"></i>
+                                </div>
+                                <div class="trend-info">
+                                    <div class="trend-name">王小红</div>
+                                    <div class="trend-detail">第2名 • 29.2小时</div>
+                                </div>
+                            </div>
+                            
+                            <div class="trend-item">
+                                <div class="user-avatar" style="width: 30px; height: 30px; font-size: var(--font-size-xs);">刘</div>
+                                <div class="trend-info">
+                                    <div class="trend-name">刘美丽</div>
+                                    <div class="trend-detail">第4名 • 26.8小时</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 初始化 Lucide 图标
+        lucide.createIcons();
+        
+        // 侧边栏切换功能
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const menuToggle = document.getElementById('menuToggle');
+        
+        function toggleSidebar() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            
+            const icon = sidebarToggle.querySelector('i');
+            if (sidebar.classList.contains('collapsed')) {
+                icon.setAttribute('data-lucide', 'chevron-right');
+            } else {
+                icon.setAttribute('data-lucide', 'chevron-left');
+            }
+            lucide.createIcons();
+        }
+        
+        function toggleMobileSidebar() {
+            sidebar.classList.toggle('open');
+        }
+        
+        sidebarToggle?.addEventListener('click', toggleSidebar);
+        menuToggle?.addEventListener('click', toggleMobileSidebar);
+        
+        // 控制标签切换
+        const controlTabs = document.querySelectorAll('.control-tab');
+        controlTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // 获取同组的标签
+                const group = tab.parentElement;
+                const groupTabs = group.querySelectorAll('.control-tab');
+                
+                // 更新活动状态
+                groupTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // 根据选择更新排行榜
+                updateLeaderboard();
+            });
+        });
+        
+        // 更新排行榜数据
+        function updateLeaderboard() {
+            const type = document.querySelector('[data-type].active')?.dataset.type || 'study-time';
+            const scope = document.querySelector('[data-scope].active')?.dataset.scope || 'class';
+            const period = document.querySelector('[data-period].active')?.dataset.period || 'weekly';
+            
+            // 更新标题
+            const title = document.querySelector('.leaderboard-title');
+            const titleIcon = title.querySelector('i');
+            let titleText = '';
+            let iconName = '';
+            
+            switch(type) {
+                case 'study-time':
+                    titleText = '学习时长排行榜';
+                    iconName = 'clock';
+                    break;
+                case 'progress':
+                    titleText = '学习进步排行榜';
+                    iconName = 'trending-up';
+                    break;
+                case 'points':
+                    titleText = '积分排行榜';
+                    iconName = 'star';
+                    break;
+                case 'challenges':
+                    titleText = '挑战完成排行榜';
+                    iconName = 'zap';
+                    break;
+            }
+            
+            const scopeText = scope === 'class' ? '初二(3)班' : scope === 'grade' ? '初二年级' : '全校';
+            title.innerHTML = `<i data-lucide="${iconName}" style="width: 20px; height: 20px;"></i>${titleText} - ${scopeText}`;
+            
+            // 重新初始化图标
+            lucide.createIcons();
+            
+            // 这里可以添加AJAX请求来获取新的排行榜数据
+            console.log(`更新排行榜: ${type}, ${scope}, ${period}`);
+        }
+        
+        // 搜索功能
+        const searchInput = document.querySelector('.search-box input');
+        searchInput?.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const rankingItems = document.querySelectorAll('.ranking-item');
+            
+            rankingItems.forEach(item => {
+                const userName = item.querySelector('.user-name').textContent.toLowerCase();
+                if (userName.includes(searchTerm)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+        
+        // 排名项点击事件
+        const rankingItems = document.querySelectorAll('.ranking-item');
+        rankingItems.forEach(item => {
+            item.addEventListener('click', () => {
+                if (!item.classList.contains('my-rank')) {
+                    const userName = item.querySelector('.user-name').textContent;
+                    showUserProfile(userName);
+                }
+            });
+        });
+        
+        // 显示用户资料
+        function showUserProfile(userName) {
+            alert(`查看 ${userName} 的学习资料`);
+        }
+        
+        // 响应式处理
+        mainContent?.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('open');
+            }
+        });
+        
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+            }
+        });
+        
+        // 模拟实时更新排名
+        function updateRankingData() {
+            // 这里可以添加实时更新排名数据的逻辑
+            console.log('更新排名数据');
+        }
+        
+        // 每5分钟更新一次数据
+        setInterval(updateRankingData, 5 * 60 * 1000);
+    </script>
+</body>
+</html> 

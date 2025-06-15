@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeekerAI智能学习平台 - 学习进度</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        .progress-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: var(--space-lg);
+            margin-bottom: var(--space-xl);
+        }
+        
+        .progress-content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--space-xl);
+            margin-bottom: var(--space-xl);
+        }
+        
+        .subject-detail-card {
+            background: var(--light-color);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-lg);
+            box-shadow: 0 4px 12px var(--shadow-color);
+            border: 1px solid var(--border-color);
+            transition: all var(--transition-speed);
+        }
+        
+        .subject-detail-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px var(--shadow-hover);
+        }
+        
+        .subject-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-lg);
+        }
+        
+        .subject-title {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .subject-icon-large {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+        }
+        
+        .subject-name-large {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        
+        .subject-score-large {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .knowledge-points {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-md);
+            margin-top: var(--space-lg);
+        }
+        
+        .knowledge-point {
+            background: var(--light-gray);
+            border-radius: var(--border-radius);
+            padding: var(--space-md);
+            border-left: 4px solid var(--border-color);
+            transition: all var(--transition-speed);
+        }
+        
+        .knowledge-point.excellent {
+            border-left-color: var(--success-color);
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.05) 0%, rgba(40, 167, 69, 0.02) 100%);
+        }
+        
+        .knowledge-point.good {
+            border-left-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(107, 165, 57, 0.05) 0%, rgba(107, 165, 57, 0.02) 100%);
+        }
+        
+        .knowledge-point.average {
+            border-left-color: var(--warning-color);
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.05) 0%, rgba(255, 193, 7, 0.02) 100%);
+        }
+        
+        .knowledge-point.poor {
+            border-left-color: var(--error-color);
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.05) 0%, rgba(220, 53, 69, 0.02) 100%);
+        }
+        
+        .knowledge-point-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-sm);
+        }
+        
+        .knowledge-point-name {
+            font-weight: 500;
+            font-size: var(--font-size-sm);
+            color: var(--text-color);
+        }
+        
+        .knowledge-point-score {
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+        }
+        
+        .knowledge-point.excellent .knowledge-point-score {
+            color: var(--success-color);
+        }
+        
+        .knowledge-point.good .knowledge-point-score {
+            color: var(--primary-color);
+        }
+        
+        .knowledge-point.average .knowledge-point-score {
+            color: var(--warning-color);
+        }
+        
+        .knowledge-point.poor .knowledge-point-score {
+            color: var(--error-color);
+        }
+        
+        .knowledge-point-progress {
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: var(--space-sm);
+        }
+        
+        .knowledge-point-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width var(--transition-speed);
+        }
+        
+        .knowledge-point.excellent .knowledge-point-fill {
+            background: linear-gradient(90deg, var(--success-color) 0%, #20c997 100%);
+        }
+        
+        .knowledge-point.good .knowledge-point-fill {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-light) 100%);
+        }
+        
+        .knowledge-point.average .knowledge-point-fill {
+            background: linear-gradient(90deg, var(--warning-color) 0%, #fbbf24 100%);
+        }
+        
+        .knowledge-point.poor .knowledge-point-fill {
+            background: linear-gradient(90deg, var(--error-color) 0%, #ef4444 100%);
+        }
+        
+        .knowledge-point-status {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: var(--space-lg);
+            background: var(--light-gray);
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+        }
+        
+        .chart-placeholder {
+            text-align: center;
+        }
+        
+        .time-period-tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: var(--space-lg);
+        }
+        
+        .time-tab {
+            padding: var(--space-md) var(--space-lg);
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all var(--transition-speed);
+            border-bottom: 3px solid transparent;
+            background: none;
+            border: none;
+            font-size: var(--font-size-sm);
+        }
+        
+        .time-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(107, 165, 57, 0.05) 0%, rgba(107, 165, 57, 0.02) 100%);
+        }
+        
+        .learning-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: var(--space-md);
+            margin-bottom: var(--space-lg);
+        }
+        
+        .learning-stat-item {
+            text-align: center;
+            padding: var(--space-lg);
+            background: var(--light-color);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+        }
+        
+        .learning-stat-value {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .learning-stat-label {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .weak-points {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .weak-point-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-md);
+            margin-bottom: var(--space-sm);
+            background: var(--light-color);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            transition: all var(--transition-speed);
+        }
+        
+        .weak-point-item:hover {
+            background: var(--light-gray);
+            border-color: var(--primary-color);
+        }
+        
+        .weak-point-info {
+            flex: 1;
+        }
+        
+        .weak-point-name {
+            font-weight: 500;
+            font-size: var(--font-size-sm);
+            color: var(--text-color);
+            margin-bottom: 2px;
+        }
+        
+        .weak-point-subject {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+        }
+        
+        .weak-point-action {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--border-radius-sm);
+            font-size: var(--font-size-xs);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+        
+        .weak-point-action:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(107, 165, 57, 0.3);
+        }
+        
+        .study-calendar {
+            background: var(--light-color);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-lg);
+            border: 1px solid var(--border-color);
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: var(--space-lg);
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+        
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-xs);
+            font-weight: 500;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+        
+        .calendar-day.header {
+            background: var(--light-gray);
+            color: var(--text-secondary);
+            cursor: default;
+        }
+        
+        .calendar-day.today {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .calendar-day.studied {
+            background: linear-gradient(135deg, var(--success-color) 0%, #20c997 100%);
+            color: white;
+        }
+        
+        .calendar-day.partial {
+            background: linear-gradient(135deg, var(--warning-color) 0%, #fbbf24 100%);
+            color: white;
+        }
+        
+        .calendar-day:hover:not(.header) {
+            background: var(--light-gray);
+        }
+        
+        @media (max-width: 768px) {
+            .progress-content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .knowledge-points {
+                grid-template-columns: 1fr;
+            }
+            
+            .learning-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- 侧边栏 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <img src="../teacher/img/logo.svg" alt="SeekerAI" style="height: 40px; width: auto;">
+
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i data-lucide="chevron-left"></i>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-group">
+                    <div class="nav-group-title">学习中心</div>
+                    <div class="nav-item">
+                        <a href="dashboard.html">
+                            <div class="icon"><i data-lucide="home"></i></div>
+                            <span>学习仪表盘</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="assessment.html">
+                            <div class="icon"><i data-lucide="brain"></i></div>
+                            <span>AI智能测评</span>
+                        </a>
+                    </div>
+                    <div class="nav-item active" data-tooltip="学习进度">
+                        <a href="progress.html">
+                            <div class="icon"><i data-lucide="target"></i></div>
+                            <span>学习进度</span>
+                        </a>
+                    </div>
+                    <div class="nav-item" data-tooltip="智能错题本">
+                        <a href="mistakes.html">
+                            <div class="icon"><i data-lucide="book"></i></div>
+                            <span>智能错题本</span>
+                            <span class="badge">12</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="nav-group">
+                    <div class="nav-group-title">激励系统</div>
+                    <div class="nav-item" data-tooltip="成就系统">
+                        <a href="achievements.html">
+                            <div class="icon"><i data-lucide="award"></i></div>
+                            <span>成就系统</span>
+                        </a>
+                    </div>
+                    <div class="nav-item" data-tooltip="学习排行榜">
+                        <a href="leaderboard.html">
+                            <div class="icon"><i data-lucide="trophy"></i></div>
+                            <span>学习排行榜</span>
+                        </a>
+                    </div>
+                    <div class="nav-item" data-tooltip="每日挑战">
+                        <a href="challenges.html">
+                            <div class="icon"><i data-lucide="zap"></i></div>
+                            <span>每日挑战</span>
+                            <span class="badge">3</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="nav-group">
+                    <div class="nav-group-title">个人中心</div>
+                    <div class="nav-item" data-tooltip="个人资料">
+                        <a href="profile.html">
+                            <div class="icon"><i data-lucide="user"></i></div>
+                            <span>个人资料</span>
+                        </a>
+                    </div>
+                    <div class="nav-item" data-tooltip="学习设置">
+                        <a href="settings.html">
+                            <div class="icon"><i data-lucide="settings"></i></div>
+                            <span>学习设置</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+        
+        <!-- 主内容区 -->
+        <main class="main-content" id="mainContent">
+            <!-- 顶部导航栏 -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <div class="topbar-title">
+                        <h1>学习进度</h1>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <div class="search-box">
+                        <i data-lucide="search" style="width: 18px; height: 18px; color: var(--text-secondary);"></i>
+                        <input type="text" placeholder="搜索知识点...">
+                    </div>
+                    <button class="notification-btn">
+                        <i data-lucide="bell"></i>
+                        <span class="notification-badge">5</span>
+                    </button>
+                    <div class="user-profile">
+                        <div class="avatar">李</div>
+                        <div class="user-info">
+                            <div class="username">李明同学</div>
+                            <div class="role">高中二年级</div>
+                        </div>
+                        <i data-lucide="chevron-down"></i>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- 进度概览 -->
+            <div class="progress-overview">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">总体学习进度</div>
+                        <div class="stat-icon" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);">
+                            <i data-lucide="target"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">78<span style="font-size: 16px; margin-left: 4px;">%</span></div>
+                    <div class="stat-footer">
+                        <span class="trend up">
+                            <i data-lucide="trending-up" style="width: 14px; height: 14px;"></i>
+                            +6%
+                        </span>
+                        <span>较上周</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">已掌握知识点</div>
+                        <div class="stat-icon" style="background: linear-gradient(135deg, var(--success-color) 0%, #20c997 100%);">
+                            <i data-lucide="check-circle"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">156<span style="font-size: 16px; margin-left: 4px;">个</span></div>
+                    <div class="stat-footer">
+                        <span class="trend up">
+                            <i data-lucide="trending-up" style="width: 14px; height: 14px;"></i>
+                            +12个
+                        </span>
+                        <span>较上周</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">学习连续天数</div>
+                        <div class="stat-icon" style="background: linear-gradient(135deg, var(--warning-color) 0%, #fbbf24 100%);">
+                            <i data-lucide="calendar"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">23<span style="font-size: 16px; margin-left: 4px;">天</span></div>
+                    <div class="stat-footer">
+                        <span class="trend up">
+                            <i data-lucide="trending-up" style="width: 14px; height: 14px;"></i>
+                            新纪录
+                        </span>
+                        <span>保持好习惯</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">薄弱知识点</div>
+                        <div class="stat-icon" style="background: linear-gradient(135deg, var(--error-color) 0%, #ef4444 100%);">
+                            <i data-lucide="alert-triangle"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">8<span style="font-size: 16px; margin-left: 4px;">个</span></div>
+                    <div class="stat-footer">
+                        <span class="trend down">
+                            <i data-lucide="trending-down" style="width: 14px; height: 14px;"></i>
+                            -3个
+                        </span>
+                        <span>较上周</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 主要内容网格 -->
+            <div class="progress-content-grid">
+                <!-- 左侧内容 -->
+                <div class="left-content">
+                    <!-- 学科详细进度 -->
+                    <div class="subject-detail-card">
+                        <div class="subject-header">
+                            <div class="subject-title">
+                                <div class="subject-icon-large" style="background: linear-gradient(135deg, var(--error-color) 0%, #dc2626 100%);">数</div>
+                                <div class="subject-name-large">数学</div>
+                            </div>
+                            <div class="subject-score-large">85%</div>
+                        </div>
+                        
+                        <div class="knowledge-points">
+                            <div class="knowledge-point excellent">
+                                <div class="knowledge-point-header">
+                                    <div class="knowledge-point-name">函数与导数</div>
+                                    <div class="knowledge-point-score">95%</div>
+                                </div>
+                                <div class="knowledge-point-progress">
+                                    <div class="knowledge-point-fill" style="width: 95%;"></div>
+                                </div>
+                                <div class="knowledge-point-status">掌握优秀 · 已完成32道题</div>
+                            </div>
+                            
+                            <div class="knowledge-point good">
+                                <div class="knowledge-point-header">
+                                    <div class="knowledge-point-name">数列与极限</div>
+                                    <div class="knowledge-point-score">88%</div>
+                                </div>
+                                <div class="knowledge-point-progress">
+                                    <div class="knowledge-point-fill" style="width: 88%;"></div>
+                                </div>
+                                <div class="knowledge-point-status">掌握良好 · 已完成25道题</div>
+                            </div>
+                            
+                            <div class="knowledge-point average">
+                                <div class="knowledge-point-header">
+                                    <div class="knowledge-point-name">立体几何</div>
+                                    <div class="knowledge-point-score">72%</div>
+                                </div>
+                                <div class="knowledge-point-progress">
+                                    <div class="knowledge-point-fill" style="width: 72%;"></div>
+                                </div>
+                                <div class="knowledge-point-status">需要加强 · 已完成18道题</div>
+                            </div>
+                            
+                            <div class="knowledge-point poor">
+                                <div class="knowledge-point-header">
+                                    <div class="knowledge-point-name">解析几何</div>
+                                    <div class="knowledge-point-score">56%</div>
+                                </div>
+                                <div class="knowledge-point-progress">
+                                    <div class="knowledge-point-fill" style="width: 56%;"></div>
+                                </div>
+                                <div class="knowledge-point-status">急需突破 · 已完成12道题</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="subject-detail-card">
+                        <div class="subject-header">
+                            <div class="subject-title">
+                                <div class="subject-icon-large" style="background: linear-gradient(135deg, var(--info-color) 0%, #2563eb 100%);">语</div>
+                                <div class="subject-name-large">语文</div>
+                            </div>
+                            <div class="subject-score-large">78%</div>
+                        </div>
+                        
+                        <div class="knowledge-points">
+                            <div class="knowledge-point good">
+                                <div class="knowledge-point-header">
+                                    <div class="knowledge-point-name">古诗文阅读</div>
+                                    <div class="knowledge-point-score">85%</div>
+                                </div>
+                                <div class="knowledge-point-progress">
+                                    <div class="knowledge-point-fill" style="width: 85%;"></div>
+                                </div>
+                                <div class="knowledge-point-status">掌握良好 · 已练习28篇</div>
+                            </div>
+                            
+                            <div class="knowledge-point average">
+                                <div class="knowledge-point-header">
+                                    <div class="knowledge-point-name">现代文阅读</div>
+                                    <div class="knowledge-point-score">75%</div>
+                                </div>
+                                <div class="knowledge-point-progress">
+                                    <div class="knowledge-point-fill" style="width: 75%;"></div>
+                                </div>
+                                <div class="knowledge-point-status">掌握一般 · 已练习22篇</div>
+                            </div>
+                            
+                            <div class="knowledge-point average">
+                                <div class="knowledge-point-header">
+                                    <div class="knowledge-point-name">作文写作</div>
+                                    <div class="knowledge-point-score">70%</div>
+                                </div>
+                                <div class="knowledge-point-progress">
+                                    <div class="knowledge-point-fill" style="width: 70%;"></div>
+                                </div>
+                                <div class="knowledge-point-status">需要加强 · 已练习15篇</div>
+                            </div>
+                            
+                            <div class="knowledge-point poor">
+                                <div class="knowledge-point-header">
+                                    <div class="knowledge-point-name">语言文字运用</div>
+                                    <div class="knowledge-point-score">68%</div>
+                                </div>
+                                <div class="knowledge-point-progress">
+                                    <div class="knowledge-point-fill" style="width: 68%;"></div>
+                                </div>
+                                <div class="knowledge-point-status">需要突破 · 已练习20套</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 学习趋势图 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">学习时长趋势</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="time-period-tabs">
+                                <button class="time-tab active">本周</button>
+                                <button class="time-tab">本月</button>
+                                <button class="time-tab">本学期</button>
+                            </div>
+                            
+                            <div class="learning-stats">
+                                <div class="learning-stat-item">
+                                    <div class="learning-stat-value">18.5</div>
+                                    <div class="learning-stat-label">本周总时长(h)</div>
+                                </div>
+                                <div class="learning-stat-item">
+                                    <div class="learning-stat-value">2.6</div>
+                                    <div class="learning-stat-label">日均时长(h)</div>
+                                </div>
+                                <div class="learning-stat-item">
+                                    <div class="learning-stat-value">156</div>
+                                    <div class="learning-stat-label">完成题目</div>
+                                </div>
+                                <div class="learning-stat-item">
+                                    <div class="learning-stat-value">89%</div>
+                                    <div class="learning-stat-label">正确率</div>
+                                </div>
+                            </div>
+                            
+                            <div class="chart-container">
+                                <div class="chart-placeholder">
+                                    <i data-lucide="bar-chart" style="width: 48px; height: 48px; margin-bottom: 16px;"></i>
+                                    <p><strong>学习时长分析图表</strong></p>
+                                    <p style="font-size: 12px; margin-top: 8px;">
+                                        周一: 2.5h | 周二: 3.2h | 周三: 2.8h | 周四: 2.1h<br>
+                                        周五: 3.5h | 周六: 2.4h | 周日: 2.0h
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 右侧内容 -->
+                <div class="right-content">
+                    <!-- 薄弱知识点 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">需要重点关注</h3>
+                            <span style="color: var(--text-secondary); font-size: var(--font-size-xs);">8个薄弱点</span>
+                        </div>
+                        <div class="card-body">
+                            <ul class="weak-points">
+                                <li class="weak-point-item">
+                                    <div class="weak-point-info">
+                                        <div class="weak-point-name">解析几何</div>
+                                        <div class="weak-point-subject">数学 · 掌握度56%</div>
+                                    </div>
+                                    <button class="weak-point-action">专项练习</button>
+                                </li>
+                                <li class="weak-point-item">
+                                    <div class="weak-point-info">
+                                        <div class="weak-point-name">语言文字运用</div>
+                                        <div class="weak-point-subject">语文 · 掌握度68%</div>
+                                    </div>
+                                    <button class="weak-point-action">专项练习</button>
+                                </li>
+                                <li class="weak-point-item">
+                                    <div class="weak-point-info">
+                                        <div class="weak-point-name">阅读理解</div>
+                                        <div class="weak-point-subject">英语 · 掌握度65%</div>
+                                    </div>
+                                    <button class="weak-point-action">专项练习</button>
+                                </li>
+                                <li class="weak-point-item">
+                                    <div class="weak-point-info">
+                                        <div class="weak-point-name">电路分析</div>
+                                        <div class="weak-point-subject">物理 · 掌握度62%</div>
+                                    </div>
+                                    <button class="weak-point-action">专项练习</button>
+                                </li>
+                                <li class="weak-point-item">
+                                    <div class="weak-point-info">
+                                        <div class="weak-point-name">有机化学</div>
+                                        <div class="weak-point-subject">化学 · 掌握度59%</div>
+                                    </div>
+                                    <button class="weak-point-action">专项练习</button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- 学习日历 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">学习日历</h3>
+                            <span style="color: var(--text-secondary); font-size: var(--font-size-xs);">2024年1月</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="study-calendar">
+                                <div class="calendar-grid">
+                                    <div class="calendar-day header">日</div>
+                                    <div class="calendar-day header">一</div>
+                                    <div class="calendar-day header">二</div>
+                                    <div class="calendar-day header">三</div>
+                                    <div class="calendar-day header">四</div>
+                                    <div class="calendar-day header">五</div>
+                                    <div class="calendar-day header">六</div>
+                                    
+                                    <div class="calendar-day"></div>
+                                    <div class="calendar-day studied">1</div>
+                                    <div class="calendar-day studied">2</div>
+                                    <div class="calendar-day studied">3</div>
+                                    <div class="calendar-day partial">4</div>
+                                    <div class="calendar-day studied">5</div>
+                                    <div class="calendar-day studied">6</div>
+                                    
+                                    <div class="calendar-day studied">7</div>
+                                    <div class="calendar-day studied">8</div>
+                                    <div class="calendar-day studied">9</div>
+                                    <div class="calendar-day studied">10</div>
+                                    <div class="calendar-day studied">11</div>
+                                    <div class="calendar-day partial">12</div>
+                                    <div class="calendar-day studied">13</div>
+                                    
+                                    <div class="calendar-day studied">14</div>
+                                    <div class="calendar-day today">15</div>
+                                    <div class="calendar-day">16</div>
+                                    <div class="calendar-day">17</div>
+                                    <div class="calendar-day">18</div>
+                                    <div class="calendar-day">19</div>
+                                    <div class="calendar-day">20</div>
+                                    
+                                    <div class="calendar-day">21</div>
+                                    <div class="calendar-day">22</div>
+                                    <div class="calendar-day">23</div>
+                                    <div class="calendar-day">24</div>
+                                    <div class="calendar-day">25</div>
+                                    <div class="calendar-day">26</div>
+                                    <div class="calendar-day">27</div>
+                                    
+                                    <div class="calendar-day">28</div>
+                                    <div class="calendar-day">29</div>
+                                    <div class="calendar-day">30</div>
+                                    <div class="calendar-day">31</div>
+                                    <div class="calendar-day"></div>
+                                    <div class="calendar-day"></div>
+                                    <div class="calendar-day"></div>
+                                </div>
+                                <div style="margin-top: var(--space-md);">
+                                    <div style="display: flex; gap: var(--space-lg); font-size: var(--font-size-xs); color: var(--text-secondary);">
+                                        <span><span style="color: var(--success-color);">●</span> 完整学习</span>
+                                        <span><span style="color: var(--warning-color);">●</span> 部分学习</span>
+                                        <span><span style="color: var(--primary-color);">●</span> 今天</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 学习建议 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">AI学习建议</h3>
+                            <i data-lucide="sparkles" style="width: 16px; height: 16px; color: var(--primary-color);"></i>
+                        </div>
+                        <div class="card-body">
+                            <div class="ai-insights">
+                                <div class="ai-title">
+                                    <i data-lucide="lightbulb"></i>
+                                    个性化建议
+                                </div>
+                                <div class="ai-content">
+                                    <div class="insight-item">
+                                        <strong>解析几何薄弱:</strong> 建议加强向量运算和直线方程的基础练习，每天安排30分钟专项训练。
+                                    </div>
+                                    <div class="insight-item">
+                                        <strong>学习效率优化:</strong> 你在下午2-4点学习效率最高，建议安排重难点知识的学习。
+                                    </div>
+                                    <div class="insight-item">
+                                        <strong>复习策略:</strong> 距离期末考试还有3周，建议采用艾宾浩斯遗忘曲线进行复习。
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        // 初始化Lucide图标
+        lucide.createIcons();
+        
+        // 侧边栏切换
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const mainContent = document.getElementById('mainContent');
+        const menuToggle = document.getElementById('menuToggle');
+        
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        });
+        
+        menuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('open');
+        });
+        
+        // 时间段切换
+        const timeTabs = document.querySelectorAll('.time-tab');
+        timeTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                timeTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // 薄弱点专项练习点击事件
+        const weakPointActions = document.querySelectorAll('.weak-point-action');
+        weakPointActions.forEach(action => {
+            action.addEventListener('click', function() {
+                const weakPointName = this.parentElement.querySelector('.weak-point-name').textContent;
+                alert(`即将开始 "${weakPointName}" 专项练习`);
+            });
+        });
+        
+        // 日历点击事件
+        const calendarDays = document.querySelectorAll('.calendar-day:not(.header)');
+        calendarDays.forEach(day => {
+            day.addEventListener('click', function() {
+                if (this.textContent) {
+                    console.log(`查看 ${this.textContent} 号的学习记录`);
+                }
+            });
+        });
+        
+        // 添加页面加载动画
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.card, .stat-card, .subject-detail-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html> 

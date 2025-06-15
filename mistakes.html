@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeekerAI智能学习平台 - 智能错题本</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        .mistakes-container {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: var(--space-xl);
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .filter-select {
+            padding: var(--space-sm) var(--space-md);
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background: var(--light-color);
+            font-size: var(--font-size-sm);
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+        
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .mistakes-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+        
+        .stat-mini-card {
+            background: var(--light-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: var(--space-md);
+            text-align: center;
+        }
+        
+        .stat-mini-value {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .stat-mini-label {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+        }
+        
+        .mistakes-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-lg);
+        }
+        
+        .mistake-card {
+            background: var(--light-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-lg);
+            transition: all var(--transition-speed);
+            cursor: pointer;
+        }
+        
+        .mistake-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px var(--shadow-hover);
+            transform: translateY(-2px);
+        }
+        
+        .mistake-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--space-md);
+        }
+        
+        .mistake-meta {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xs);
+        }
+        
+        .mistake-subject {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: var(--border-radius-sm);
+            font-size: var(--font-size-xs);
+            font-weight: 500;
+            color: white;
+        }
+        
+        .mistake-knowledge {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+        }
+        
+        .mistake-date {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+        }
+        
+        .mistake-status {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            font-size: var(--font-size-xs);
+            font-weight: 500;
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: var(--border-radius-sm);
+        }
+        
+        .mistake-status.pending {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+        }
+        
+        .mistake-status.reviewing {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+        }
+        
+        .mistake-status.mastered {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+        
+        .mistake-content {
+            margin-bottom: var(--space-md);
+        }
+        
+        .mistake-question {
+            font-size: var(--font-size-sm);
+            line-height: 1.6;
+            margin-bottom: var(--space-sm);
+            color: var(--text-color);
+        }
+        
+        .mistake-error-type {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            padding: var(--space-xs) var(--space-sm);
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--secondary-color);
+            border-radius: var(--border-radius-sm);
+            font-size: var(--font-size-xs);
+            font-weight: 500;
+        }
+        
+        .mistake-actions {
+            display: flex;
+            gap: var(--space-sm);
+            margin-top: var(--space-md);
+        }
+        
+        .mistake-btn {
+            padding: var(--space-xs) var(--space-md);
+            border: 1px solid var(--border-color);
+            background: var(--light-color);
+            border-radius: var(--border-radius);
+            font-size: var(--font-size-xs);
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        
+        .mistake-btn:hover {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .review-schedule {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-lg);
+        }
+        
+        .review-title {
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            margin-bottom: var(--space-md);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .review-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-sm) 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .review-item:last-child {
+            border-bottom: none;
+        }
+        
+        .review-count {
+            font-weight: 600;
+            color: var(--warning-color);
+        }
+        
+        .category-stats {
+            margin-bottom: var(--space-lg);
+        }
+        
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-sm) 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .category-item:last-child {
+            border-bottom: none;
+        }
+        
+        .category-name {
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+        }
+        
+        .category-count {
+            font-size: var(--font-size-sm);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .practice-suggestion {
+            background: var(--light-gray);
+            border-radius: var(--border-radius);
+            padding: var(--space-md);
+            margin-bottom: var(--space-lg);
+        }
+        
+        .suggestion-title {
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            margin-bottom: var(--space-sm);
+            color: var(--text-color);
+        }
+        
+        .suggestion-text {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        
+        @media (max-width: 768px) {
+            .mistakes-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-group {
+                justify-content: space-between;
+            }
+            
+            .mistakes-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- 侧边栏 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <img src="../teacher/img/logo.svg" alt="SeekerAI" style="height: 40px; width: auto;">
+
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i data-lucide="chevron-left"></i>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-group">
+                    <div class="nav-group-title">学习中心</div>
+                    <div class="nav-item">
+                        <a href="dashboard.html">
+                            <div class="icon"><i data-lucide="home"></i></div>
+                            <span>学习仪表盘</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="assessment.html">
+                            <div class="icon"><i data-lucide="brain"></i></div>
+                            <span>AI智能测评</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="progress.html">
+                            <div class="icon"><i data-lucide="target"></i></div>
+                            <span>学习进度</span>
+                        </a>
+                    </div>
+                    <div class="nav-item active">
+                        <a href="mistakes.html">
+                            <div class="icon"><i data-lucide="book"></i></div>
+                            <span>智能错题本</span>
+                            <span class="badge">12</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="nav-group">
+                    <div class="nav-group-title">激励系统</div>
+                    <div class="nav-item">
+                        <a href="achievements.html">
+                            <div class="icon"><i data-lucide="award"></i></div>
+                            <span>成就系统</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="leaderboard.html">
+                            <div class="icon"><i data-lucide="trophy"></i></div>
+                            <span>学习排行榜</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="challenges.html">
+                            <div class="icon"><i data-lucide="zap"></i></div>
+                            <span>每日挑战</span>
+                            <span class="badge">3</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="nav-group">
+                    <div class="nav-group-title">个人中心</div>
+                    <div class="nav-item">
+                        <a href="profile.html">
+                            <div class="icon"><i data-lucide="user"></i></div>
+                            <span>个人资料</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="settings.html">
+                            <div class="icon"><i data-lucide="settings"></i></div>
+                            <span>学习设置</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+        
+        <!-- 主内容区域 -->
+        <main class="main-content" id="mainContent">
+            <!-- 顶部导航栏 -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <div class="topbar-title">
+                        <h1>智能错题本</h1>
+                    </div>
+                </div>
+                
+                <div class="topbar-right">
+                    <div class="search-box">
+                        <i data-lucide="search"></i>
+                        <input type="text" placeholder="搜索错题内容...">
+                    </div>
+                    
+                    <button class="notification-btn">
+                        <i data-lucide="bell"></i>
+                        <span class="notification-badge">2</span>
+                    </button>
+                    
+                    <div class="user-profile">
+                        <div class="avatar">王小华</div>
+                        <div class="user-info">
+                            <div class="username">王小华</div>
+                            <div class="role">初二(3)班</div>
+                        </div>
+                        <i data-lucide="chevron-down"></i>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- 错题本内容 -->
+            <div class="dashboard-content">
+                <div class="mistakes-container">
+                    <!-- 主要内容 -->
+                    <div class="main-mistakes">
+                        <!-- 统计概览 -->
+                        <div class="mistakes-stats">
+                            <div class="stat-mini-card">
+                                <div class="stat-mini-value">47</div>
+                                <div class="stat-mini-label">总错题数</div>
+                            </div>
+                            <div class="stat-mini-card">
+                                <div class="stat-mini-value">12</div>
+                                <div class="stat-mini-label">待复习</div>
+                            </div>
+                            <div class="stat-mini-card">
+                                <div class="stat-mini-value">18</div>
+                                <div class="stat-mini-label">复习中</div>
+                            </div>
+                            <div class="stat-mini-card">
+                                <div class="stat-mini-value">17</div>
+                                <div class="stat-mini-label">已掌握</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 筛选控件 -->
+                        <div class="filter-controls">
+                            <div class="filter-group">
+                                <label style="font-size: var(--font-size-sm); color: var(--text-secondary);">学科：</label>
+                                <select class="filter-select" id="subjectFilter">
+                                    <option value="all">全部学科</option>
+                                    <option value="math">数学</option>
+                                    <option value="chinese">语文</option>
+                                    <option value="english">英语</option>
+                                    <option value="physics">物理</option>
+                                    <option value="chemistry">化学</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label style="font-size: var(--font-size-sm); color: var(--text-secondary);">状态：</label>
+                                <select class="filter-select" id="statusFilter">
+                                    <option value="all">全部状态</option>
+                                    <option value="pending">待复习</option>
+                                    <option value="reviewing">复习中</option>
+                                    <option value="mastered">已掌握</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label style="font-size: var(--font-size-sm); color: var(--text-secondary);">错误类型：</label>
+                                <select class="filter-select" id="errorTypeFilter">
+                                    <option value="all">全部类型</option>
+                                    <option value="knowledge">知识性错误</option>
+                                    <option value="method">方法性错误</option>
+                                    <option value="careless">粗心性错误</option>
+                                    <option value="habit">习惯性错误</option>
+                                </select>
+                            </div>
+                            
+                            <button class="btn btn-outline" style="margin-left: auto;">
+                                <i data-lucide="plus"></i>
+                                添加错题
+                            </button>
+                        </div>
+                        
+                        <!-- 错题列表 -->
+                        <div class="mistakes-list">
+                            <div class="mistake-card" data-subject="math" data-status="pending" data-error-type="knowledge">
+                                <div class="mistake-header">
+                                    <div class="mistake-meta">
+                                        <div class="mistake-subject" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                                            <i data-lucide="calculator" style="width: 12px; height: 12px;"></i>
+                                            数学
+                                        </div>
+                                        <div class="mistake-knowledge">二次函数 > 图像性质</div>
+                                        <div class="mistake-date">2024年1月15日</div>
+                                    </div>
+                                    <div class="mistake-status pending">
+                                        <i data-lucide="clock" style="width: 12px; height: 12px;"></i>
+                                        待复习
+                                    </div>
+                                </div>
+                                
+                                <div class="mistake-content">
+                                    <div class="mistake-question">
+                                        已知二次函数 $f(x) = ax^2 + bx + c$ (a≠0) 的图像过点 (1,0) 和 (3,0)，且函数的最小值为 -2，求函数解析式。
+                                    </div>
+                                    <div class="mistake-error-type">
+                                        <i data-lucide="alert-circle" style="width: 12px; height: 12px;"></i>
+                                        知识性错误：对称轴公式理解错误
+                                    </div>
+                                </div>
+                                
+                                <div class="mistake-actions">
+                                    <button class="mistake-btn">
+                                        <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                                        查看详情
+                                    </button>
+                                    <button class="mistake-btn">
+                                        <i data-lucide="repeat" style="width: 14px; height: 14px;"></i>
+                                        开始复习
+                                    </button>
+                                    <button class="mistake-btn">
+                                        <i data-lucide="play" style="width: 14px; height: 14px;"></i>
+                                        相似练习
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mistake-card" data-subject="english" data-status="reviewing" data-error-type="method">
+                                <div class="mistake-header">
+                                    <div class="mistake-meta">
+                                        <div class="mistake-subject" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);">
+                                            <i data-lucide="book-open" style="width: 12px; height: 12px;"></i>
+                                            英语
+                                        </div>
+                                        <div class="mistake-knowledge">语法 > 现在完成时</div>
+                                        <div class="mistake-date">2024年1月14日</div>
+                                    </div>
+                                    <div class="mistake-status reviewing">
+                                        <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i>
+                                        复习中
+                                    </div>
+                                </div>
+                                
+                                <div class="mistake-content">
+                                    <div class="mistake-question">
+                                        The film _____ for ten minutes when I got to the cinema.
+                                        A. had been on  B. has been on  C. was on  D. is on
+                                    </div>
+                                    <div class="mistake-error-type">
+                                        <i data-lucide="zap" style="width: 12px; height: 12px;"></i>
+                                        方法性错误：时态判断方法不当
+                                    </div>
+                                </div>
+                                
+                                <div class="mistake-actions">
+                                    <button class="mistake-btn">
+                                        <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                                        查看详情
+                                    </button>
+                                    <button class="mistake-btn">
+                                        <i data-lucide="repeat" style="width: 14px; height: 14px;"></i>
+                                        继续复习
+                                    </button>
+                                    <button class="mistake-btn">
+                                        <i data-lucide="play" style="width: 14px; height: 14px;"></i>
+                                        相似练习
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mistake-card" data-subject="physics" data-status="mastered" data-error-type="careless">
+                                <div class="mistake-header">
+                                    <div class="mistake-meta">
+                                        <div class="mistake-subject" style="background: linear-gradient(135deg, var(--accent-color) 0%, var(--primary-dark) 100%);">
+                                            <i data-lucide="atom" style="width: 12px; height: 12px;"></i>
+                                            物理
+                                        </div>
+                                        <div class="mistake-knowledge">力学 > 牛顿定律</div>
+                                        <div class="mistake-date">2024年1月12日</div>
+                                    </div>
+                                    <div class="mistake-status mastered">
+                                        <i data-lucide="check-circle" style="width: 12px; height: 12px;"></i>
+                                        已掌握
+                                    </div>
+                                </div>
+                                
+                                <div class="mistake-content">
+                                    <div class="mistake-question">
+                                        一个质量为2kg的物体在水平面上受到10N的水平推力，物体与地面间的摩擦系数为0.2，求物体的加速度。
+                                    </div>
+                                    <div class="mistake-error-type">
+                                        <i data-lucide="frown" style="width: 12px; height: 12px;"></i>
+                                        粗心性错误：计算摩擦力时符号错误
+                                    </div>
+                                </div>
+                                
+                                <div class="mistake-actions">
+                                    <button class="mistake-btn">
+                                        <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                                        查看详情
+                                    </button>
+                                    <button class="mistake-btn">
+                                        <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+                                        已掌握
+                                    </button>
+                                    <button class="mistake-btn">
+                                        <i data-lucide="play" style="width: 14px; height: 14px;"></i>
+                                        相似练习
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mistake-card" data-subject="chinese" data-status="pending" data-error-type="habit">
+                                <div class="mistake-header">
+                                    <div class="mistake-meta">
+                                        <div class="mistake-subject" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                                            <i data-lucide="pen-tool" style="width: 12px; height: 12px;"></i>
+                                            语文
+                                        </div>
+                                        <div class="mistake-knowledge">阅读理解 > 文意概括</div>
+                                        <div class="mistake-date">2024年1月11日</div>
+                                    </div>
+                                    <div class="mistake-status pending">
+                                        <i data-lucide="clock" style="width: 12px; height: 12px;"></i>
+                                        待复习
+                                    </div>
+                                </div>
+                                
+                                <div class="mistake-content">
+                                    <div class="mistake-question">
+                                        阅读下面的文章，请概括文章的主要内容。（要求：语言简洁，不超过50字）
+                                    </div>
+                                    <div class="mistake-error-type">
+                                        <i data-lucide="repeat" style="width: 12px; height: 12px;"></i>
+                                        习惯性错误：概括时总是包含过多细节
+                                    </div>
+                                </div>
+                                
+                                <div class="mistake-actions">
+                                    <button class="mistake-btn">
+                                        <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                                        查看详情
+                                    </button>
+                                    <button class="mistake-btn">
+                                        <i data-lucide="repeat" style="width: 14px; height: 14px;"></i>
+                                        开始复习
+                                    </button>
+                                    <button class="mistake-btn">
+                                        <i data-lucide="play" style="width: 14px; height: 14px;"></i>
+                                        相似练习
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 加载更多 -->
+                        <div style="text-align: center; margin-top: var(--space-xl);">
+                            <button class="btn btn-outline">
+                                加载更多错题
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 右侧边栏 -->
+                    <div class="sidebar-content">
+                        <!-- 复习计划 -->
+                        <div class="review-schedule">
+                            <h3 class="review-title">
+                                <i data-lucide="calendar" style="width: 18px; height: 18px;"></i>
+                                今日复习计划
+                            </h3>
+                            <div class="review-item">
+                                <span>紧急复习</span>
+                                <span class="review-count">5题</span>
+                            </div>
+                            <div class="review-item">
+                                <span>日常复习</span>
+                                <span class="review-count">7题</span>
+                            </div>
+                            <div class="review-item">
+                                <span>巩固练习</span>
+                                <span class="review-count">3题</span>
+                            </div>
+                        </div>
+                        
+                        <!-- 错题分类统计 -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">错题分类统计</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="category-stats">
+                                    <div class="category-item">
+                                        <span class="category-name">数学</span>
+                                        <span class="category-count">18题</span>
+                                    </div>
+                                    <div class="category-item">
+                                        <span class="category-name">英语</span>
+                                        <span class="category-count">12题</span>
+                                    </div>
+                                    <div class="category-item">
+                                        <span class="category-name">物理</span>
+                                        <span class="category-count">9题</span>
+                                    </div>
+                                    <div class="category-item">
+                                        <span class="category-name">语文</span>
+                                        <span class="category-count">5题</span>
+                                    </div>
+                                    <div class="category-item">
+                                        <span class="category-name">化学</span>
+                                        <span class="category-count">3题</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 错误类型分析 -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">错误类型分析</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="category-stats">
+                                    <div class="category-item">
+                                        <span class="category-name">知识性错误</span>
+                                        <span class="category-count">20题</span>
+                                    </div>
+                                    <div class="category-item">
+                                        <span class="category-name">方法性错误</span>
+                                        <span class="category-count">15题</span>
+                                    </div>
+                                    <div class="category-item">
+                                        <span class="category-name">粗心性错误</span>
+                                        <span class="category-count">8题</span>
+                                    </div>
+                                    <div class="category-item">
+                                        <span class="category-name">习惯性错误</span>
+                                        <span class="category-count">4题</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 学习建议 -->
+                        <div class="practice-suggestion">
+                            <div class="suggestion-title">
+                                <i data-lucide="lightbulb" style="width: 16px; height: 16px; margin-right: 6px; color: var(--warning-color);"></i>
+                                AI学习建议
+                            </div>
+                            <div class="suggestion-text">
+                                建议优先复习数学二次函数相关错题，这类知识点在期末考试中占比较高。可以通过相似题型练习来巩固理解。
+                            </div>
+                        </div>
+                        
+                        <!-- 复习效果统计 -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">本周复习效果</h3>
+                            </div>
+                            <div class="card-body">
+                                <div style="text-align: center; padding: var(--space-md);">
+                                    <div style="font-size: var(--font-size-xl); font-weight: 700; color: var(--success-color); margin-bottom: var(--space-sm);">
+                                        89%
+                                    </div>
+                                    <div style="font-size: var(--font-size-sm); color: var(--text-secondary);">
+                                        错题掌握率
+                                    </div>
+                                    <div style="margin-top: var(--space-md); font-size: var(--font-size-xs); color: var(--text-secondary);">
+                                        本周复习了23道错题，掌握了20道
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 初始化 Lucide 图标
+        lucide.createIcons();
+        
+        // 侧边栏切换功能
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const menuToggle = document.getElementById('menuToggle');
+        
+        function toggleSidebar() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            
+            const icon = sidebarToggle.querySelector('i');
+            if (sidebar.classList.contains('collapsed')) {
+                icon.setAttribute('data-lucide', 'chevron-right');
+            } else {
+                icon.setAttribute('data-lucide', 'chevron-left');
+            }
+            lucide.createIcons();
+        }
+        
+        function toggleMobileSidebar() {
+            sidebar.classList.toggle('open');
+        }
+        
+        sidebarToggle?.addEventListener('click', toggleSidebar);
+        menuToggle?.addEventListener('click', toggleMobileSidebar);
+        
+        // 筛选功能
+        const subjectFilter = document.getElementById('subjectFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const errorTypeFilter = document.getElementById('errorTypeFilter');
+        const mistakeCards = document.querySelectorAll('.mistake-card');
+        
+        function filterMistakes() {
+            const selectedSubject = subjectFilter.value;
+            const selectedStatus = statusFilter.value;
+            const selectedErrorType = errorTypeFilter.value;
+            
+            mistakeCards.forEach(card => {
+                const cardSubject = card.dataset.subject;
+                const cardStatus = card.dataset.status;
+                const cardErrorType = card.dataset.errorType;
+                
+                const matchSubject = selectedSubject === 'all' || cardSubject === selectedSubject;
+                const matchStatus = selectedStatus === 'all' || cardStatus === selectedStatus;
+                const matchErrorType = selectedErrorType === 'all' || cardErrorType === selectedErrorType;
+                
+                if (matchSubject && matchStatus && matchErrorType) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+        
+        subjectFilter?.addEventListener('change', filterMistakes);
+        statusFilter?.addEventListener('change', filterMistakes);
+        errorTypeFilter?.addEventListener('change', filterMistakes);
+        
+        // 错题卡片交互
+        mistakeCards.forEach(card => {
+            const actions = card.querySelectorAll('.mistake-btn');
+            
+            actions.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const action = btn.textContent.trim();
+                    
+                    switch(action) {
+                        case '查看详情':
+                            alert('打开错题详情页面');
+                            break;
+                        case '开始复习':
+                        case '继续复习':
+                            alert('开始复习模式');
+                            break;
+                        case '相似练习':
+                            alert('开始相似题型练习');
+                            break;
+                        case '已掌握':
+                            alert('该题目已标记为掌握状态');
+                            break;
+                    }
+                });
+            });
+            
+            // 点击卡片查看详情
+            card.addEventListener('click', () => {
+                alert('查看错题详情');
+            });
+        });
+        
+        // 搜索功能
+        const searchInput = document.querySelector('.search-box input');
+        searchInput?.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            
+            mistakeCards.forEach(card => {
+                const question = card.querySelector('.mistake-question').textContent.toLowerCase();
+                const knowledge = card.querySelector('.mistake-knowledge').textContent.toLowerCase();
+                
+                if (question.includes(query) || knowledge.includes(query)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+        
+        // 响应式处理
+        mainContent?.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('open');
+            }
+        });
+        
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+            }
+        });
+        
+        // 动画效果
+        const observeElements = () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('fade-in');
+                    }
+                });
+            });
+            
+            mistakeCards.forEach(card => {
+                observer.observe(card);
+            });
+        };
+        
+        document.addEventListener('DOMContentLoaded', observeElements);
+    </script>
+</body>
+</html> 
