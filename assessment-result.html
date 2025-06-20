@@ -571,23 +571,73 @@
 
             async loadResult() {
                 try {
-                    // 模拟API调用延迟
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    // 首先尝试从localStorage获取缓存的报告
+                    const cachedReport = localStorage.getItem('assessmentReport');
+                    if (cachedReport) {
+                        const report = JSON.parse(cachedReport);
+                        localStorage.removeItem('assessmentReport'); // 清除缓存
+                        this.resultData = this.formatReportData(report);
+                        this.displayResult();
+                        this.hideLoading();
+                        return;
+                    }
+
+                    // 如果没有缓存，从API获取
+                    const response = await fetch(`http://localhost:3000/api/assessment/report/${this.sessionId}`);
+                    const result = await response.json();
                     
-                    // 模拟从后端获取测评结果
-                    const response = await this.fetchAssessmentResult();
-                    this.resultData = response;
+                    if (result.success) {
+                        this.resultData = this.formatReportData(result.report);
+                    } else {
+                        throw new Error('获取报告失败');
+                    }
                     
                     this.displayResult();
                     this.hideLoading();
                 } catch (error) {
                     console.error('加载测评结果失败:', error);
-                    this.showError();
+                    
+                    // 回退到离线模式，从localStorage获取基础数据
+                    const offlineResult = localStorage.getItem('assessmentResult');
+                    if (offlineResult) {
+                        const data = JSON.parse(offlineResult);
+                        localStorage.removeItem('assessmentResult');
+                        this.resultData = this.generateOfflineReport(data);
+                        this.displayResult();
+                        this.hideLoading();
+                    } else {
+                        // 如果都没有，使用默认数据
+                        this.resultData = this.getDefaultMockResult();
+                        this.displayResult();
+                        this.hideLoading();
+                    }
                 }
             }
 
-            async fetchAssessmentResult() {
-                // 模拟测评结果数据
+            formatReportData(report) {
+                const accuracy = report.totalQuestions > 0 ? 
+                    (report.correctCount / report.totalQuestions * 100) : 0;
+                    
+                return {
+                    overview: {
+                        totalScore: report.overall_score || Math.round(accuracy),
+                        correctRate: Math.round(accuracy),
+                        avgTime: 90,
+                        adaptiveDifficulty: accuracy >= 80 ? 'hard' : accuracy >= 60 ? 'medium' : 'easy'
+                    },
+                    knowledgePoints: this.generateKnowledgePoints(accuracy),
+                    abilities: this.generateAbilities(accuracy),
+                    aiAnalysis: this.formatAIAnalysis(report),
+                    recommendations: this.formatRecommendations(report.recommendations || []),
+                    learningPlan: report.learning_plan || {}
+                };
+            }
+
+            generateOfflineReport(data) {
+                const correctCount = data.answers?.filter(a => a.isCorrect).length || 0;
+                const totalQuestions = data.answers?.length || 5;
+                const accuracy = totalQuestions > 0 ? (correctCount / totalQuestions * 100) : 0;
+                
                 return {
                     overview: {
                         totalScore: 85,

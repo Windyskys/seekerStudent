@@ -680,27 +680,62 @@
                        correctAnswer.toLowerCase().replace(/\s/g, '');
             }
 
-            // 简化的完成测评方法
-            completeAssessment() {
+            // 完成测评方法
+            async completeAssessment() {
                 this.showLoading();
                 document.querySelector('.loading-content p').textContent = 'AI正在分析您的测评结果...';
 
-                // 保存答案数据到localStorage，供结果页面使用
-                const assessmentResult = {
-                    sessionId: this.sessionId,
-                    studentId: this.studentId,
-                    studentName: this.studentName,
-                    answers: this.answers,
-                    questions: this.questions,
-                    completedAt: new Date().toISOString()
-                };
-                
-                localStorage.setItem('assessmentResult', JSON.stringify(assessmentResult));
-                
-                // 模拟分析时间，然后直接跳转
-                setTimeout(() => {
-                    window.location.href = `assessment-result.html?sessionId=${this.sessionId}`;
-                }, 2000);
+                try {
+                    // 准备最后一题的答案
+                    const finalAnswer = this.answers[this.answers.length - 1];
+                    const finalAnswerData = {
+                        questionId: finalAnswer.questionId,
+                        answer: finalAnswer.studentAnswer,
+                        isCorrect: finalAnswer.isCorrect,
+                        responseTime: finalAnswer.responseTime
+                    };
+
+                    // 请求完成测评并生成报告
+                    const response = await fetch(`${this.apiBaseUrl}/assessment/complete`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            sessionId: this.sessionId,
+                            finalAnswer: finalAnswerData
+                        })
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        // 保存报告数据到localStorage
+                        localStorage.setItem('assessmentReport', JSON.stringify(result.report));
+                        window.location.href = `assessment-result.html?sessionId=${this.sessionId}`;
+                    } else {
+                        throw new Error('生成测评报告失败');
+                    }
+
+                } catch (error) {
+                    console.error('完成测评失败:', error);
+                    
+                    // 回退到离线模式
+                    const assessmentResult = {
+                        sessionId: this.sessionId,
+                        studentId: this.studentId,
+                        studentName: this.studentName,
+                        answers: this.answers,
+                        questions: this.questions,
+                        completedAt: new Date().toISOString(),
+                        offline: true
+                    };
+                    
+                    localStorage.setItem('assessmentResult', JSON.stringify(assessmentResult));
+                    
+                    setTimeout(() => {
+                        window.location.href = `assessment-result.html?sessionId=${this.sessionId}`;
+                    }, 1000);
+                }
             }
 
             startTimer() {

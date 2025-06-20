@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  seeker-ai:
+    build: .
+    container_name: seeker-ai-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - QWEN_API_KEY=${QWEN_API_KEY}
+      - DASHSCOPE_BASE_URL=https://dashscope.aliyuncs.com/api/v1
+      - DB_PATH=./database/seeker_ai.db
+    volumes:
+      - ./database:/app/database
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - seeker-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: seeker-ai-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - seeker-ai
+    restart: unless-stopped
+    networks:
+      - seeker-network
+
+networks:
+  seeker-network:
+    driver: bridge
+
+volumes:
+  seeker_data:
+    driver: local 
