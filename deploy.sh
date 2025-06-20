@@ -112,7 +112,7 @@ if [ ! -f ".env" ]; then
     log_info "创建环境配置文件..."
     cat > .env << EOL
 # 阿里百炼API配置（Qwen-Plus模型）
-QWEN_API_KEY=your_qwen_api_key_here
+QWEN_API_KEY=sk-0eaf3643806f4d4991eedd3dc7f5aa2e
 DASHSCOPE_BASE_URL=https://dashscope.aliyuncs.com/api/v1
 
 # 服务器配置
