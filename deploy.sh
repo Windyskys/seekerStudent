@@ -61,7 +61,7 @@ apt upgrade -y
 
 # 3. 安装基础依赖
 log_info "安装基础依赖..."
-apt install -y curl wget git unzip software-properties-common ufw nginx
+apt install -y curl wget git unzip software-properties-common ufw nginx rsync
 
 # 4. 安装Node.js
 log_info "安装Node.js $NODE_VERSION..."
@@ -78,23 +78,45 @@ log_success "npm 安装成功: $NPM_VERSION_INSTALLED"
 log_info "安装PM2进程管理器..."
 npm install -g pm2
 
-# 6. 创建项目目录
-log_info "创建项目目录..."
-mkdir -p $PROJECT_DIR
-cd $PROJECT_DIR
+# 6. 检查并复制项目文件
+log_info "检查项目文件..."
 
-# 7. 获取项目代码（假设从当前目录复制，实际部署时可能从Git获取）
-log_info "部署项目文件..."
-echo "请将项目文件上传到 $PROJECT_DIR 目录"
-echo "或者从Git仓库克隆："
-echo "  git clone <your-repo-url> ."
-echo ""
-read -p "项目文件是否已准备好？(y/n): " -n 1 -r
-echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    log_warning "请先准备项目文件，然后重新运行脚本"
-    exit 1
+# 记录脚本运行时的原始目录
+ORIGINAL_DIR=$(pwd)
+
+# 检查当前目录是否有项目文件
+if [ -f "$ORIGINAL_DIR/package.json" ] && [ -f "$ORIGINAL_DIR/server.js" ]; then
+    log_info "在当前目录发现项目文件: $ORIGINAL_DIR"
+    
+    # 创建项目目录
+    log_info "创建项目目录..."
+    mkdir -p $PROJECT_DIR
+    
+    log_info "正在复制项目文件到 $PROJECT_DIR ..."
+    
+    # 复制所有文件到项目目录，排除一些不需要的文件
+    rsync -av --exclude 'node_modules' --exclude '.git' --exclude 'logs' --exclude 'database' --exclude '*.log' "$ORIGINAL_DIR/" "$PROJECT_DIR/"
+    
+    log_success "项目文件复制完成"
+else
+    log_warning "在当前目录 $ORIGINAL_DIR 未找到项目文件"
+    echo "请确保您在包含 package.json 和 server.js 的项目目录中运行此脚本"
+    echo ""
+    echo "或者手动将项目文件上传到 $PROJECT_DIR 目录"
+    echo ""
+    read -p "是否已手动准备好项目文件？(y/n): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        log_warning "请先准备项目文件，然后重新运行脚本"
+        exit 1
+    fi
+    
+    # 创建项目目录
+    mkdir -p $PROJECT_DIR
 fi
+
+# 切换到项目目录
+cd $PROJECT_DIR
 
 # 8. 安装项目依赖
 log_info "安装项目依赖..."
@@ -225,6 +247,17 @@ fi
 
 # 15. 启动服务
 log_info "启动应用服务..."
+
+# 创建www-data用户的home目录和PM2配置
+if [ ! -d "/home/www-data" ]; then
+    mkdir -p /home/www-data
+    chown www-data:www-data /home/www-data
+fi
+
+# 创建PM2目录并设置权限
+mkdir -p /home/www-data/.pm2
+chown -R www-data:www-data /home/www-data/.pm2
+chmod 755 /home/www-data/.pm2
 
 # 以www-data用户身份启动PM2
 sudo -u www-data PM2_HOME=/home/www-data/.pm2 pm2 start ecosystem.config.js

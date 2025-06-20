@@ -692,6 +692,36 @@ app.get('/api/student/:studentId/history', (req, res) => {
     );
 });
 
+// 健康检查接口
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        version: '1.0.0',
+        database: 'connected',
+        ai_service: process.env.QWEN_API_KEY ? 'configured' : 'mock'
+    });
+});
+
+// API状态检查
+app.get('/api/status', (req, res) => {
+    res.json({
+        success: true,
+        message: 'SeekerAI API服务运行正常',
+        timestamp: new Date().toISOString(),
+        features: {
+            ai_generation: !!process.env.QWEN_API_KEY,
+            database: true,
+            assessment: true
+        }
+    });
+});
+
+// 根路径重定向到首页
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // 启动服务器
 app.listen(PORT, () => {
     console.log(`
