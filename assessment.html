@@ -607,6 +607,12 @@
                 if (selectedAssessment === 'diagnostic') {
                     // 跳转到数学摸底测评
                     window.location.href = 'assessment-test.html?type=diagnostic&subject=math';
+                } else if (selectedAssessment === 'comprehensive') {
+                    // 跳转到综合能力测评
+                    window.location.href = 'comprehensive-assessment.html';
+                } else if (selectedAssessment === 'quick') {
+                    // 跳转到快速检测
+                    window.location.href = 'assessment-test.html?type=quick&subject=math';
                 } else {
                     // 其他类型的测评可以后续实现
                     alert(`开始 ${selectedAssessment} 测评！\n此功能正在开发中...`);
