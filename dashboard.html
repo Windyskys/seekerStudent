@@ -405,69 +405,69 @@
                 <div class="dashboard-overview">
                     <div class="stat-card">
                         <div class="stat-header">
-                            <div class="stat-title">今日学习时长</div>
+                            <div class="stat-title">本月测评次数</div>
                             <div class="stat-icon" style="background: linear-gradient(135deg, var(--info-color) 0%, #0891b2 100%);">
-                                <i data-lucide="clock"></i>
+                                <i data-lucide="calendar"></i>
                             </div>
                         </div>
-                        <div class="stat-value">2.5<span style="font-size: 16px; margin-left: 4px;">小时</span></div>
+                        <div class="stat-value">0<span style="font-size: 16px; margin-left: 4px;">次</span></div>
                         <div class="stat-footer">
                             <span class="trend up">
                                 <i data-lucide="trending-up" style="width: 14px; height: 14px;"></i>
-                                +0.5h
+                                +0次
                             </span>
-                            <span>较昨日</span>
+                            <span>本月新增</span>
                         </div>
                     </div>
                     
                     <div class="stat-card">
                         <div class="stat-header">
-                            <div class="stat-title">本周完成练习</div>
+                            <div class="stat-title">总测评次数</div>
                             <div class="stat-icon" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);">
                                 <i data-lucide="check-circle"></i>
                             </div>
                         </div>
-                        <div class="stat-value">156<span style="font-size: 16px; margin-left: 4px;">题</span></div>
+                        <div class="stat-value">0<span style="font-size: 16px; margin-left: 4px;">次</span></div>
                         <div class="stat-footer">
                             <span class="trend up">
                                 <i data-lucide="trending-up" style="width: 14px; height: 14px;"></i>
-                                +23题
+                                累计完成
                             </span>
-                            <span>较上周</span>
+                            <span>持续提升</span>
                         </div>
                     </div>
                     
                     <div class="stat-card">
                         <div class="stat-header">
-                            <div class="stat-title">错题订正率</div>
+                            <div class="stat-title">平均得分</div>
                             <div class="stat-icon" style="background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);">
                                 <i data-lucide="target"></i>
                             </div>
                         </div>
-                        <div class="stat-value">89<span style="font-size: 16px; margin-left: 4px;">%</span></div>
+                        <div class="stat-value">0<span style="font-size: 16px; margin-left: 4px;">分</span></div>
                         <div class="stat-footer">
                             <span class="trend up">
                                 <i data-lucide="trending-up" style="width: 14px; height: 14px;"></i>
-                                +5%
+                                +0分
                             </span>
-                            <span>较上周</span>
+                            <span>较上次</span>
                         </div>
                     </div>
                     
                     <div class="stat-card">
                         <div class="stat-header">
-                            <div class="stat-title">知识点掌握</div>
+                            <div class="stat-title">最近得分</div>
                             <div class="stat-icon" style="background: linear-gradient(135deg, var(--warning-color) 0%, #d97706 100%);">
                                 <i data-lucide="brain"></i>
                             </div>
                         </div>
-                        <div class="stat-value">72<span style="font-size: 16px; margin-left: 4px;">%</span></div>
+                        <div class="stat-value">0<span style="font-size: 16px; margin-left: 4px;">分</span></div>
                         <div class="stat-footer">
                             <span class="trend up">
-                                <i data-lucide="trending-up" style="width: 14px; height: 14px;"></i>
-                                +8%
+                                <i data-lucide="clock" style="width: 14px; height: 14px;"></i>
+                                最新记录
                             </span>
-                            <span>较上月</span>
+                            <span>继续努力</span>
                         </div>
                     </div>
                 </div>
@@ -687,6 +687,9 @@
     </div>
 
     <script>
+        // API配置
+        window.apiBaseUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : '';
+        
         // 初始化 Lucide 图标
         lucide.createIcons();
         
@@ -743,6 +746,144 @@
             }
         });
         
+        // 从API加载数据看板数据
+        async function loadDashboardData() {
+            try {
+                console.log('开始加载数据看板数据...');
+                
+                // 调用API获取学生数据看板统计
+                const response = await fetch(`${window.apiBaseUrl}/api/dashboard/student_001`);
+                
+                if (!response.ok) {
+                    throw new Error(`API请求失败: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    console.log('数据看板加载成功:', result.dashboard);
+                    updateDashboard(result.dashboard);
+                } else {
+                    throw new Error(result.error || '获取数据失败');
+                }
+                
+            } catch (error) {
+                console.error('加载数据看板失败:', error);
+                console.log('使用默认数据作为备选');
+                // 使用默认数据作为备选
+                updateDashboard(getDefaultDashboardData());
+            }
+        }
+        
+        // 更新数据看板显示
+        function updateDashboard(data) {
+            try {
+                // 更新统计卡片
+                const statCards = document.querySelectorAll('.stat-card');
+                
+                if (statCards.length >= 1) {
+                    // 本月测评次数
+                    const monthTestsValue = statCards[0].querySelector('.stat-value');
+                    if (monthTestsValue) {
+                        monthTestsValue.innerHTML = `${data.thisMonthTests}<span style="font-size: 16px; margin-left: 4px;">次</span>`;
+                    }
+                    
+                    // 趋势显示
+                    const monthTestsTrend = statCards[0].querySelector('.trend');
+                    if (monthTestsTrend && data.thisMonthTests > 0) {
+                        monthTestsTrend.innerHTML = `<i data-lucide="trending-up" style="width: 14px; height: 14px;"></i> +${data.thisMonthTests}次`;
+                        monthTestsTrend.className = 'trend up';
+                    }
+                }
+                
+                if (statCards.length >= 2) {
+                    // 总测评次数
+                    const totalTestsValue = statCards[1].querySelector('.stat-value');
+                    if (totalTestsValue) {
+                        totalTestsValue.innerHTML = `${data.totalTests}<span style="font-size: 16px; margin-left: 4px;">次</span>`;
+                    }
+                }
+                
+                if (statCards.length >= 3) {
+                    // 平均得分
+                    const avgScoreValue = statCards[2].querySelector('.stat-value');
+                    if (avgScoreValue) {
+                        avgScoreValue.innerHTML = `${data.averageScore}<span style="font-size: 16px; margin-left: 4px;">分</span>`;
+                    }
+                    
+                    // 趋势显示
+                    const avgScoreTrend = statCards[2].querySelector('.trend');
+                    if (avgScoreTrend && data.improvementTrend !== undefined) {
+                        const trendValue = Math.abs(data.improvementTrend);
+                        const trendDirection = data.improvementTrend >= 0 ? 'up' : 'down';
+                        const trendIcon = data.improvementTrend >= 0 ? 'trending-up' : 'trending-down';
+                        const trendSign = data.improvementTrend >= 0 ? '+' : '-';
+                        
+                        avgScoreTrend.innerHTML = `<i data-lucide="${trendIcon}" style="width: 14px; height: 14px;"></i> ${trendSign}${trendValue}分`;
+                        avgScoreTrend.className = `trend ${trendDirection}`;
+                    }
+                }
+                
+                if (statCards.length >= 4) {
+                    // 最近得分
+                    const latestScoreValue = statCards[3].querySelector('.stat-value');
+                    if (latestScoreValue) {
+                        latestScoreValue.innerHTML = `${data.latestScore}<span style="font-size: 16px; margin-left: 4px;">分</span>`;
+                    }
+                }
+                
+                // 更新学科进度（如果有强项数据的话）
+                if (data.topStrengths && data.topStrengths.length > 0) {
+                    const subjectItems = document.querySelectorAll('.subject-item');
+                    if (subjectItems.length > 0) {
+                        const mathSubject = subjectItems[0];
+                        const mathScore = mathSubject.querySelector('.subject-score');
+                        if (mathScore) {
+                            mathScore.textContent = `${data.averageScore}%`;
+                        }
+                        
+                        const mathProgress = mathSubject.nextElementSibling;
+                        if (mathProgress) {
+                            const progressFill = mathProgress.querySelector('.progress-fill');
+                            if (progressFill) {
+                                progressFill.style.width = `${data.averageScore}%`;
+                            }
+                        }
+                    }
+                }
+                
+                // 更新错题复习数量
+                const mistakesCard = document.querySelector('.action-card .action-desc');
+                if (mistakesCard && mistakesCard.textContent.includes('待复习')) {
+                    const totalQuestions = data.totalTests * 8; // 假设每次测评8题
+                    const wrongQuestions = Math.round(totalQuestions * (100 - data.averageScore) / 100);
+                    mistakesCard.textContent = `${wrongQuestions}道待复习`;
+                }
+                
+                // 重新初始化图标
+                lucide.createIcons();
+                
+                console.log('数据看板更新完成');
+                
+            } catch (error) {
+                console.error('更新数据看板失败:', error);
+            }
+        }
+        
+        // 获取默认数据
+        function getDefaultDashboardData() {
+            return {
+                totalTests: 5,
+                averageScore: 78,
+                thisMonthTests: 3,
+                latestScore: 85,
+                improvementTrend: 7,
+                topStrengths: ['基础运算', '逻辑思维'],
+                topWeaknesses: ['复杂应用', '解题速度'],
+                lastTestDate: new Date().toISOString()
+            };
+        }
+        
         // 动画效果
         const observeElements = () => {
             const observer = new IntersectionObserver((entries) => {
@@ -761,6 +902,7 @@
         // 页面加载完成后执行
         document.addEventListener('DOMContentLoaded', () => {
             observeElements();
+            loadDashboardData(); // 加载数据看板数据
         });
     </script>
 </body>

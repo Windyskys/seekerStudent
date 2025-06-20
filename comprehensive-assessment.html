@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>综合能力评估 - SeekerAI智能学习平台</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        .subject-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-md);
+            margin-bottom: var(--space-lg);
+        }
+        
+        .subject-card {
+            background: var(--background-white);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--space-lg);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .subject-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .subject-card.selected {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            color: white;
+        }
+        
+        .subject-card.selected .subject-icon {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .subject-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--space-md);
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .subject-name {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: var(--space-sm);
+        }
+        
+        .subject-description {
+            text-align: center;
+            font-size: var(--font-size-sm);
+            opacity: 0.8;
+        }
+        
+        .subject-card.selected .subject-description {
+            opacity: 0.9;
+        }
+        
+        .question-subject-tag {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary-color);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .comprehensive-result {
+            margin-top: var(--space-xl);
+        }
+        
+        .subject-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-md);
+            margin-top: var(--space-lg);
+        }
+        
+        .subject-result-card {
+            background: var(--background-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--space-md);
+            text-align: center;
+        }
+        
+        .subject-result-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--space-sm);
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .subject-result-score {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .subject-result-name {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <img src="img/logo.svg" alt="SeekerAI" width="32" height="32">
+                    <span class="logo-text">SeekerAI</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i data-lucide="chevron-left"></i>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="dashboard.html" class="nav-link">
+                            <i data-lucide="home" class="nav-icon"></i>
+                            <span class="nav-text">学习仪表盘</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="assessment.html" class="nav-link">
+                            <i data-lucide="brain" class="nav-icon"></i>
+                            <span class="nav-text">智能测评</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="comprehensive-assessment.html" class="nav-link active">
+                            <i data-lucide="layers" class="nav-icon"></i>
+                            <span class="nav-text">综合评估</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="progress.html" class="nav-link">
+                            <i data-lucide="trending-up" class="nav-icon"></i>
+                            <span class="nav-text">学习进度</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="mistakes.html" class="nav-link">
+                            <i data-lucide="book-open" class="nav-icon"></i>
+                            <span class="nav-text">错题本</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="challenges.html" class="nav-link">
+                            <i data-lucide="zap" class="nav-icon"></i>
+                            <span class="nav-text">每日挑战</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="achievements.html" class="nav-link">
+                            <i data-lucide="award" class="nav-icon"></i>
+                            <span class="nav-text">成就系统</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="leaderboard.html" class="nav-link">
+                            <i data-lucide="trophy" class="nav-icon"></i>
+                            <span class="nav-text">排行榜</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="profile.html" class="nav-link">
+                            <i data-lucide="user" class="nav-icon"></i>
+                            <span class="nav-text">个人资料</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="settings.html" class="nav-link">
+                            <i data-lucide="settings" class="nav-icon"></i>
+                            <span class="nav-text">设置</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- 主内容区域 -->
+        <main class="main-content" id="mainContent">
+            <!-- 顶部导航栏 -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <div class="topbar-title">
+                        <h1>综合能力评估</h1>
+                    </div>
+                </div>
+                
+                <div class="topbar-right">
+                    <div class="search-box">
+                        <i data-lucide="search"></i>
+                        <input type="text" placeholder="搜索题目、知识点...">
+                    </div>
+                    
+                    <button class="notification-btn">
+                        <i data-lucide="bell"></i>
+                        <span class="notification-badge">2</span>
+                    </button>
+                    
+                    <div class="user-profile">
+                        <div class="avatar">王小华</div>
+                        <div class="user-info">
+                            <div class="username">王小华</div>
+                            <div class="role">初二(3)班</div>
+                        </div>
+                        <i data-lucide="chevron-down"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 评估内容 -->
+            <div class="assessment-container">
+                <!-- 开始页面 -->
+                <div class="assessment-start" id="startSection">
+                    <div class="hero-section">
+                        <div class="hero-content">
+                            <div class="hero-icon">
+                                <i data-lucide="layers" style="width: 80px; height: 80px;"></i>
+                            </div>
+                            <h1 class="hero-title">综合能力评估</h1>
+                            <p class="hero-description">
+                                多学科融合测评，全面检验你的学习能力
+                            </p>
+                            <div class="assessment-info">
+                                <div class="info-item">
+                                    <i data-lucide="clock"></i>
+                                    <span>预计用时：15-20分钟</span>
+                                </div>
+                                <div class="info-item">
+                                    <i data-lucide="file-text"></i>
+                                    <span>题目数量：10题</span>
+                                </div>
+                                <div class="info-item">
+                                    <i data-lucide="layers"></i>
+                                    <span>涵盖科目：数学、语文、物理、化学</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setup-section">
+                        <h2>选择评估科目</h2>
+                        <p>请选择要参与综合评估的学科（至少选择2个科目）</p>
+                        
+                        <div class="subject-selector">
+                            <div class="subject-card" data-subject="数学">
+                                <div class="subject-icon" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);">数</div>
+                                <div class="subject-name">数学</div>
+                                <div class="subject-description">代数、几何、函数等</div>
+                            </div>
+                            
+                            <div class="subject-card" data-subject="语文">
+                                <div class="subject-icon" style="background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);">语</div>
+                                <div class="subject-name">语文</div>
+                                <div class="subject-description">阅读理解、文言文、作文</div>
+                            </div>
+                            
+                            <div class="subject-card" data-subject="物理">
+                                <div class="subject-icon" style="background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);">物</div>
+                                <div class="subject-name">物理</div>
+                                <div class="subject-description">力学、光学、电学</div>
+                            </div>
+                            
+                            <div class="subject-card" data-subject="化学">
+                                <div class="subject-icon" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);">化</div>
+                                <div class="subject-name">化学</div>
+                                <div class="subject-description">原子结构、化学反应</div>
+                            </div>
+                        </div>
+
+                        <div class="start-actions">
+                            <button class="start-btn" id="startAssessment" disabled>
+                                <i data-lucide="play" style="width: 20px; height: 20px;"></i>
+                                开始综合评估
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 测评过程页面 -->
+                <div class="assessment-test" id="testSection" style="display: none;">
+                    <div class="test-header">
+                        <div class="progress-section">
+                            <div class="progress-label">
+                                <span>进度：<span id="currentQuestion">1</span> / <span id="totalQuestions">10</span></span>
+                                <span id="timeDisplay">15:00</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="question-container">
+                        <div class="question-card">
+                            <div class="question-header">
+                                <span class="question-subject-tag" id="currentSubject">数学</span>
+                                <span class="question-number">第<span id="questionNumber">1</span>题</span>
+                            </div>
+                            <div class="question-content" id="questionContent">
+                                题目内容将在这里显示...
+                            </div>
+                            <div class="question-options" id="questionOptions">
+                                <!-- 选项将通过JavaScript动态生成 -->
+                            </div>
+                            <div class="question-actions">
+                                <button class="btn btn-secondary" id="prevBtn" disabled>
+                                    <i data-lucide="chevron-left"></i>
+                                    上一题
+                                </button>
+                                <button class="btn btn-primary" id="nextBtn" disabled>
+                                    下一题
+                                    <i data-lucide="chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 加载页面 -->
+                <div class="assessment-loading" id="loadingSection" style="display: none;">
+                    <div class="loading-content">
+                        <div class="loading-spinner">
+                            <i data-lucide="loader" class="animate-spin" style="width: 48px; height: 48px;"></i>
+                        </div>
+                        <h3>正在生成综合评估报告...</h3>
+                        <p>AI正在分析您的答题情况，请稍候</p>
+                        <div class="loading-progress">
+                            <div class="loading-step active">分析各科目表现</div>
+                            <div class="loading-step">生成综合评价</div>
+                            <div class="loading-step">制定学习建议</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // API配置
+        window.apiBaseUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : '';
+        
+        class ComprehensiveAssessment {
+            constructor() {
+                this.selectedSubjects = new Set();
+                this.sessionId = null;
+                this.questions = [];
+                this.currentQuestionIndex = 0;
+                this.answers = [];
+                this.timer = null;
+                this.timeRemaining = 20 * 60; // 20分钟
+                
+                this.initializeElements();
+                this.bindEvents();
+            }
+
+            initializeElements() {
+                // 科目选择相关
+                this.subjectCards = document.querySelectorAll('.subject-card');
+                this.startBtn = document.getElementById('startAssessment');
+                
+                // 测评过程相关
+                this.startSection = document.getElementById('startSection');
+                this.testSection = document.getElementById('testSection');
+                this.loadingSection = document.getElementById('loadingSection');
+                
+                this.currentQuestionSpan = document.getElementById('currentQuestion');
+                this.totalQuestionsSpan = document.getElementById('totalQuestions');
+                this.timeDisplay = document.getElementById('timeDisplay');
+                this.progressFill = document.getElementById('progressFill');
+                
+                this.currentSubjectTag = document.getElementById('currentSubject');
+                this.questionNumber = document.getElementById('questionNumber');
+                this.questionContent = document.getElementById('questionContent');
+                this.questionOptions = document.getElementById('questionOptions');
+                
+                this.prevBtn = document.getElementById('prevBtn');
+                this.nextBtn = document.getElementById('nextBtn');
+            }
+
+            bindEvents() {
+                // 科目卡片点击事件
+                this.subjectCards.forEach(card => {
+                    card.addEventListener('click', () => {
+                        const subject = card.dataset.subject;
+                        this.toggleSubject(subject, card);
+                    });
+                });
+
+                // 开始测评按钮
+                this.startBtn.addEventListener('click', () => {
+                    this.startAssessment();
+                });
+
+                // 导航按钮
+                this.prevBtn.addEventListener('click', () => {
+                    this.goToPreviousQuestion();
+                });
+
+                this.nextBtn.addEventListener('click', () => {
+                    this.goToNextQuestion();
+                });
+            }
+
+            toggleSubject(subject, card) {
+                if (this.selectedSubjects.has(subject)) {
+                    this.selectedSubjects.delete(subject);
+                    card.classList.remove('selected');
+                } else {
+                    this.selectedSubjects.add(subject);
+                    card.classList.add('selected');
+                }
+
+                // 更新开始按钮状态（至少需要2个科目）
+                this.startBtn.disabled = this.selectedSubjects.size < 2;
+                
+                if (this.selectedSubjects.size >= 2) {
+                    this.startBtn.innerHTML = `
+                        <i data-lucide="play" style="width: 20px; height: 20px;"></i>
+                        开始综合评估 (${this.selectedSubjects.size}个科目)
+                    `;
+                } else {
+                    this.startBtn.innerHTML = `
+                        <i data-lucide="play" style="width: 20px; height: 20px;"></i>
+                        开始综合评估 (请至少选择2个科目)
+                    `;
+                }
+                
+                lucide.createIcons();
+            }
+
+            async startAssessment() {
+                try {
+                    this.startBtn.disabled = true;
+                    this.startBtn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> 正在准备...';
+                    lucide.createIcons();
+
+                    console.log('开始综合评估，选择的科目:', Array.from(this.selectedSubjects));
+
+                    // 调用API开始测评
+                    const response = await fetch(`${window.apiBaseUrl}/api/comprehensive-assessment/start`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            studentId: 'student_001',
+                            subjects: Array.from(this.selectedSubjects),
+                            questionCount: 10
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`评估启动失败: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        this.sessionId = result.session.id;
+                        this.questions = result.questions || [];
+                        
+                        console.log('综合评估启动成功:', {
+                            sessionId: this.sessionId,
+                            questionsCount: this.questions.length
+                        });
+
+                        this.showTestSection();
+                        this.loadCurrentQuestion();
+                        this.startTimer();
+                    } else {
+                        throw new Error(result.error || '启动评估失败');
+                    }
+
+                } catch (error) {
+                    console.error('启动综合评估失败:', error);
+                    
+                    // 使用模拟数据作为备选
+                    console.log('使用模拟数据启动评估');
+                    this.sessionId = 'mock_' + Date.now();
+                    this.questions = this.generateMockQuestions();
+                    
+                    this.showTestSection();
+                    this.loadCurrentQuestion();
+                    this.startTimer();
+                } finally {
+                    this.startBtn.disabled = false;
+                    this.startBtn.innerHTML = '<i data-lucide="play" style="width: 20px; height: 20px;"></i> 开始综合评估';
+                    lucide.createIcons();
+                }
+            }
+
+            generateMockQuestions() {
+                const subjects = Array.from(this.selectedSubjects);
+                const questionsPerSubject = Math.ceil(10 / subjects.length);
+                const mockQuestions = [];
+
+                const questionTemplates = {
+                    '数学': [
+                        {
+                            content: "计算：(-3) + 5 - (-2) = ?",
+                            options: ["A. 4", "B. 6", "C. 10", "D. 0"],
+                            correct_answer: "A",
+                            knowledge_points: ["有理数运算"]
+                        },
+                        {
+                            content: "若 x + 3 = 7，则 x = ?",
+                            options: ["A. 4", "B. 10", "C. 3", "D. -4"],
+                            correct_answer: "A",
+                            knowledge_points: ["方程求解"]
+                        }
+                    ],
+                    '语文': [
+                        {
+                            content: "下列词语中读音完全正确的是：",
+                            options: ["A. 压轴(zhòu)", "B. 纤维(xiān)", "C. 模样(mó)", "D. 处理(chǔ)"],
+                            correct_answer: "B",
+                            knowledge_points: ["字音识别"]
+                        },
+                        {
+                            content: "\"春眠不觉晓，处处闻啼鸟\"的作者是：",
+                            options: ["A. 李白", "B. 杜甫", "C. 孟浩然", "D. 王维"],
+                            correct_answer: "C",
+                            knowledge_points: ["古诗词作者"]
+                        }
+                    ],
+                    '物理': [
+                        {
+                            content: "声音在15℃空气中的传播速度约为：",
+                            options: ["A. 340 m/s", "B. 300 m/s", "C. 380 m/s", "D. 360 m/s"],
+                            correct_answer: "A",
+                            knowledge_points: ["声学基础"]
+                        },
+                        {
+                            content: "以下属于光的反射现象的是：",
+                            options: ["A. 水中的鱼", "B. 平面镜成像", "C. 彩虹", "D. 日食"],
+                            correct_answer: "B",
+                            knowledge_points: ["光学现象"]
+                        }
+                    ],
+                    '化学': [
+                        {
+                            content: "水的化学式是：",
+                            options: ["A. H₂O", "B. CO₂", "C. NaCl", "D. CaCO₃"],
+                            correct_answer: "A",
+                            knowledge_points: ["化学式"]
+                        },
+                        {
+                            content: "以下属于化学变化的是：",
+                            options: ["A. 冰融化", "B. 纸燃烧", "C. 食盐溶解", "D. 水蒸发"],
+                            correct_answer: "B",
+                            knowledge_points: ["化学变化"]
+                        }
+                    ]
+                };
+
+                let questionId = 1;
+                subjects.forEach(subject => {
+                    const templates = questionTemplates[subject] || [];
+                    for (let i = 0; i < questionsPerSubject && questionId <= 10; i++) {
+                        const template = templates[i % templates.length];
+                        if (template) {
+                            mockQuestions.push({
+                                id: questionId++,
+                                subject: subject,
+                                ...template
+                            });
+                        }
+                    }
+                });
+
+                return mockQuestions.slice(0, 10);
+            }
+
+            showTestSection() {
+                this.startSection.style.display = 'none';
+                this.testSection.style.display = 'block';
+                this.totalQuestionsSpan.textContent = this.questions.length;
+            }
+
+            loadCurrentQuestion() {
+                const question = this.questions[this.currentQuestionIndex];
+                if (!question) return;
+
+                // 更新问题信息
+                this.currentQuestionSpan.textContent = this.currentQuestionIndex + 1;
+                this.questionNumber.textContent = this.currentQuestionIndex + 1;
+                this.currentSubjectTag.textContent = question.subject;
+                this.questionContent.textContent = question.content;
+
+                // 更新进度条
+                const progress = ((this.currentQuestionIndex + 1) / this.questions.length) * 100;
+                this.progressFill.style.width = `${progress}%`;
+
+                // 生成选项
+                this.questionOptions.innerHTML = '';
+                question.options.forEach((option, index) => {
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = 'option';
+                    optionDiv.innerHTML = `
+                        <input type="radio" name="answer" value="${option.charAt(0)}" id="option${index}">
+                        <label for="option${index}">
+                            <span class="option-text">${option}</span>
+                        </label>
+                    `;
+                    this.questionOptions.appendChild(optionDiv);
+                });
+
+                // 恢复之前的答案
+                const previousAnswer = this.answers[this.currentQuestionIndex];
+                if (previousAnswer) {
+                    const radio = document.querySelector(`input[value="${previousAnswer}"]`);
+                    if (radio) radio.checked = true;
+                }
+
+                // 更新按钮状态
+                this.prevBtn.disabled = this.currentQuestionIndex === 0;
+                this.updateNextButton();
+
+                // 绑定选项点击事件
+                this.bindOptionEvents();
+            }
+
+            bindOptionEvents() {
+                const options = document.querySelectorAll('input[name="answer"]');
+                options.forEach(option => {
+                    option.addEventListener('change', () => {
+                        this.answers[this.currentQuestionIndex] = option.value;
+                        this.updateNextButton();
+                    });
+                });
+            }
+
+            updateNextButton() {
+                const hasAnswer = this.answers[this.currentQuestionIndex];
+                const isLastQuestion = this.currentQuestionIndex === this.questions.length - 1;
+                
+                if (isLastQuestion) {
+                    this.nextBtn.textContent = hasAnswer ? '完成评估' : '完成评估';
+                    this.nextBtn.disabled = !hasAnswer;
+                } else {
+                    this.nextBtn.innerHTML = `
+                        下一题
+                        <i data-lucide="chevron-right"></i>
+                    `;
+                    this.nextBtn.disabled = !hasAnswer;
+                }
+                
+                lucide.createIcons();
+            }
+
+            goToPreviousQuestion() {
+                if (this.currentQuestionIndex > 0) {
+                    this.currentQuestionIndex--;
+                    this.loadCurrentQuestion();
+                }
+            }
+
+            goToNextQuestion() {
+                const isLastQuestion = this.currentQuestionIndex === this.questions.length - 1;
+                
+                if (isLastQuestion) {
+                    this.completeAssessment();
+                } else {
+                    this.currentQuestionIndex++;
+                    this.loadCurrentQuestion();
+                }
+            }
+
+            async completeAssessment() {
+                try {
+                    this.showLoading();
+
+                    // 构建答案数据
+                    const answerData = this.questions.map((question, index) => ({
+                        questionId: question.id || (index + 1),
+                        subject: question.subject,
+                        studentAnswer: this.answers[index] || '',
+                        correctAnswer: question.correct_answer,
+                        isCorrect: this.answers[index] === question.correct_answer,
+                        responseTime: Math.floor(Math.random() * 60) + 20, // 模拟答题时间
+                        knowledgePoints: question.knowledge_points || []
+                    }));
+
+                    console.log('完成综合评估，答案数据:', answerData);
+
+                    // 调用API完成评估
+                    const response = await fetch(`${window.apiBaseUrl}/api/comprehensive-assessment/complete`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            sessionId: this.sessionId,
+                            answers: answerData
+                        })
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success) {
+                            // 跳转到结果页面
+                            window.location.href = `comprehensive-result.html?sessionId=${this.sessionId}`;
+                            return;
+                        }
+                    }
+
+                    // 如果API失败，使用本地存储
+                    console.log('API调用失败，使用本地存储');
+                    this.saveResultToLocal(answerData);
+                    window.location.href = `comprehensive-result.html?sessionId=${this.sessionId}`;
+
+                } catch (error) {
+                    console.error('完成评估失败:', error);
+                    this.saveResultToLocal(this.generateMockResult());
+                    window.location.href = `comprehensive-result.html?sessionId=${this.sessionId}`;
+                }
+            }
+
+            saveResultToLocal(answerData) {
+                const result = {
+                    sessionId: this.sessionId,
+                    subjects: Array.from(this.selectedSubjects),
+                    answers: answerData,
+                    timestamp: new Date().toISOString()
+                };
+                localStorage.setItem('comprehensiveResult', JSON.stringify(result));
+            }
+
+            generateMockResult() {
+                return this.questions.map((question, index) => ({
+                    questionId: question.id || (index + 1),
+                    subject: question.subject,
+                    studentAnswer: this.answers[index] || 'A',
+                    correctAnswer: question.correct_answer,
+                    isCorrect: Math.random() > 0.3,
+                    responseTime: Math.floor(Math.random() * 60) + 20,
+                    knowledgePoints: question.knowledge_points || []
+                }));
+            }
+
+            showLoading() {
+                this.testSection.style.display = 'none';
+                this.loadingSection.style.display = 'block';
+                
+                // 模拟加载步骤
+                setTimeout(() => {
+                    const steps = document.querySelectorAll('.loading-step');
+                    steps[1].classList.add('active');
+                }, 1000);
+                
+                setTimeout(() => {
+                    const steps = document.querySelectorAll('.loading-step');
+                    steps[2].classList.add('active');
+                }, 2000);
+            }
+
+            startTimer() {
+                this.timer = setInterval(() => {
+                    this.timeRemaining--;
+                    this.updateTimeDisplay();
+                    
+                    if (this.timeRemaining <= 0) {
+                        clearInterval(this.timer);
+                        this.completeAssessment();
+                    }
+                }, 1000);
+            }
+
+            updateTimeDisplay() {
+                const minutes = Math.floor(this.timeRemaining / 60);
+                const seconds = this.timeRemaining % 60;
+                this.timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // 时间不足时显示警告
+                if (this.timeRemaining <= 300) { // 5分钟警告
+                    this.timeDisplay.style.color = 'var(--error-color)';
+                }
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            new ComprehensiveAssessment();
+
+            // 侧边栏功能
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const menuToggle = document.getElementById('menuToggle');
+            
+            function toggleSidebar() {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+                
+                const icon = sidebarToggle.querySelector('i');
+                if (sidebar.classList.contains('collapsed')) {
+                    icon.setAttribute('data-lucide', 'chevron-right');
+                } else {
+                    icon.setAttribute('data-lucide', 'chevron-left');
+                }
+                lucide.createIcons();
+            }
+            
+            function toggleMobileSidebar() {
+                sidebar.classList.toggle('open');
+            }
+            
+            sidebarToggle?.addEventListener('click', toggleSidebar);
+            menuToggle?.addEventListener('click', toggleMobileSidebar);
+        });
+    </script>
+</body>
+</html> 

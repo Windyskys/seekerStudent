@@ -1049,7 +1049,7 @@
             }
         }
 
-        // 生成学情白皮书
+        // 生成学情白皮书（学期学习规划）
         async function generateWhitepaper() {
             const btn = event.target;
             const originalText = btn.innerHTML;
@@ -1058,21 +1058,188 @@
             btn.disabled = true;
             
             try {
-                // 模拟API调用
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                console.log('开始生成学情报告...');
                 
-                alert('学情白皮书生成成功！\n已发送到您的学习档案中，老师和家长也会收到。');
+                // 调用API生成学期学习规划
+                const response = await fetch(`${window.apiBaseUrl || ''}/api/semester-plan/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        studentId: 'student_001',
+                        semester: '本学期',
+                        subject: '数学'
+                    })
+                });
                 
-                // 这里可以跳转到白皮书页面
-                // window.location.href = 'whitepaper.html';
+                if (!response.ok) {
+                    throw new Error(`生成失败: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    console.log('学期规划生成成功:', result.plan);
+                    showPlanModal(result.plan);
+                } else {
+                    throw new Error(result.error || '生成失败');
+                }
                 
             } catch (error) {
-                alert('生成失败，请重试');
+                console.error('生成学情报告失败:', error);
+                alert('生成失败，请重试：' + error.message);
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
                 lucide.createIcons();
             }
+        }
+
+        // 显示学期规划弹窗
+        function showPlanModal(plan) {
+            // 创建弹窗
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                padding: 20px;
+                box-sizing: border-box;
+            `;
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: white;
+                border-radius: 12px;
+                max-width: 800px;
+                max-height: 90%;
+                overflow-y: auto;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                position: relative;
+            `;
+            
+            modalContent.innerHTML = `
+                <div style="padding: 30px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid #eee; padding-bottom: 16px;">
+                        <h2 style="margin: 0; color: #333; font-size: 24px;">📊 AI学期学习规划</h2>
+                        <button onclick="this.closest('.modal-overlay').remove()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">×</button>
+                    </div>
+                    
+                    <div style="space-y: 20px;">
+                        <!-- 整体表现 -->
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                            <h3 style="color: #6ba539; margin: 0 0 12px 0; display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="trending-up" size="20"></i>
+                                整体表现分析
+                            </h3>
+                            <p style="margin: 0; line-height: 1.6; color: #555;">${plan.overall_performance}</p>
+                        </div>
+
+                        <!-- 学习目标 -->
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="color: #6ba539; margin: 0 0 12px 0; display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="target" size="20"></i>
+                                学习目标
+                            </h3>
+                            <ul style="margin: 0; padding-left: 20px; line-height: 1.8;">
+                                ${plan.learning_goals.map(goal => `<li style="margin-bottom: 8px; color: #555;">${goal}</li>`).join('')}
+                            </ul>
+                        </div>
+
+                        <!-- 学习安排 -->
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="color: #6ba539; margin: 0 0 12px 0; display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="calendar" size="20"></i>
+                                学习安排
+                            </h3>
+                            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px;">
+                                <div style="margin-bottom: 16px;">
+                                    <h4 style="margin: 0 0 8px 0; color: #374151;">每周计划</h4>
+                                    <ul style="margin: 0; padding-left: 20px; line-height: 1.6;">
+                                        ${plan.study_schedule.weekly_plan.map(item => `<li style="margin-bottom: 4px; color: #555;">${item}</li>`).join('')}
+                                    </ul>
+                                </div>
+                                <div style="margin-bottom: 16px;">
+                                    <h4 style="margin: 0 0 8px 0; color: #374151;">每月里程碑</h4>
+                                    <ul style="margin: 0; padding-left: 20px; line-height: 1.6;">
+                                        ${plan.study_schedule.monthly_milestones.map(item => `<li style="margin-bottom: 4px; color: #555;">${item}</li>`).join('')}
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 style="margin: 0 0 8px 0; color: #374151;">每日练习</h4>
+                                    <ul style="margin: 0; padding-left: 20px; line-height: 1.6;">
+                                        ${plan.study_schedule.daily_practice.map(item => `<li style="margin-bottom: 4px; color: #555;">${item}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 重点提升 -->
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="color: #6ba539; margin: 0 0 12px 0; display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="zap" size="20"></i>
+                                重点提升领域
+                            </h3>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                ${plan.key_improvements.map(item => `
+                                    <span style="background: #6ba539; color: white; padding: 6px 12px; border-radius: 16px; font-size: 14px;">${item}</span>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- AI分析 -->
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                            <h3 style="color: white; margin: 0 0 12px 0; display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="brain" size="20"></i>
+                                AI深度分析
+                            </h3>
+                            <p style="margin: 0; line-height: 1.6; font-size: 15px;">${plan.ai_analysis}</p>
+                        </div>
+
+                        <!-- 操作按钮 -->
+                        <div style="display: flex; gap: 12px; justify-content: center; padding-top: 20px; border-top: 1px solid #eee;">
+                            <button onclick="window.print()" style="background: #6ba539; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="printer" size="16"></i>
+                                打印规划
+                            </button>
+                            <button onclick="this.closest('.modal-overlay').remove()" style="background: #6c757d; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="x" size="16"></i>
+                                关闭
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+            
+            // 重新初始化图标
+            lucide.createIcons();
+            
+            // 点击背景关闭
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+            
+            // ESC键关闭
+            document.addEventListener('keydown', function escHandler(e) {
+                if (e.key === 'Escape') {
+                    modal.remove();
+                    document.removeEventListener('keydown', escHandler);
+                }
+            });
         }
 
         // 初始化
