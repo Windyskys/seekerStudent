@@ -127,9 +127,32 @@ db.serialize(() => {
             db.all(`PRAGMA table_info(questions)`, (err, columns) => {
                 if (!err) {
                     const hasExplanation = columns.some(col => col.name === 'explanation');
+                    const hasSubject = columns.some(col => col.name === 'subject');
+                    
                     if (!hasExplanation) {
                         console.log('[DB] 添加explanation字段到questions表');
                         db.run(`ALTER TABLE questions ADD COLUMN explanation TEXT`);
+                    }
+                    
+                    if (!hasSubject) {
+                        console.log('[DB] 添加subject字段到questions表');
+                        db.run(`ALTER TABLE questions ADD COLUMN subject TEXT`);
+                    }
+                }
+            });
+        }
+    });
+
+    // 检查并添加assessment_reports表的subject_analysis字段
+    db.run(`PRAGMA table_info(assessment_reports)`, (err, result) => {
+        if (!err) {
+            db.all(`PRAGMA table_info(assessment_reports)`, (err, columns) => {
+                if (!err) {
+                    const hasSubjectAnalysis = columns.some(col => col.name === 'subject_analysis');
+                    
+                    if (!hasSubjectAnalysis) {
+                        console.log('[DB] 添加subject_analysis字段到assessment_reports表');
+                        db.run(`ALTER TABLE assessment_reports ADD COLUMN subject_analysis TEXT`);
                     }
                 }
             });
@@ -979,6 +1002,378 @@ class DashscopeAI {
             ai_analysis: `根据您的学习数据分析，建议采用"循序渐进、重点突破"的学习策略。首先巩固基础知识，确保概念理解透彻；然后通过大量练习提高解题熟练度；最后进行综合应用训练。学习时间安排建议每天1小时，周末可延长至2小时。重点关注薄弱知识点的突破，建议采用"错题重做"的方法加深印象。同时要注意劳逸结合，保持学习的积极性和持续性。定期进行自我评估，及时调整学习计划和方法。`
         };
     }
+
+    // ============ 综合评估相关方法 ============
+
+    // 生成综合评估题目
+    async generateComprehensiveQuestions(context) {
+        const maxRetries = 3;
+        let attempt = 0;
+
+        while (attempt < maxRetries) {
+            attempt++;
+            console.log(`[AI] 尝试生成综合评估题目，第${attempt}次尝试`);
+
+            try {
+                const response = await this.client.call({
+                    model: this.model,
+                    messages: [
+                        {
+                            role: 'user',
+                            content: this.buildComprehensiveQuestionsPrompt(context)
+                        }
+                    ]
+                });
+
+                console.log(`[AI] 第${attempt}次尝试，综合题目API响应:`, response);
+
+                if (response && response.output && response.output.choices && response.output.choices[0]) {
+                    const content = response.output.choices[0].message.content;
+                    console.log('[AI] 原始综合题目响应:', content);
+                    
+                    const questions = this.parseQuestionsResponse(content);
+                    if (this.validateQuestions(questions)) {
+                        console.log(`[AI] 第${attempt}次尝试成功生成${questions.length}道综合题目`);
+                        return questions;
+                    }
+                }
+
+                if (attempt < maxRetries) {
+                    console.log(`[AI] 第${attempt}次尝试失败，1秒后重试...`);
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            } catch (error) {
+                console.error(`[AI] 第${attempt}次尝试API调用失败:`, error.message);
+                if (attempt < maxRetries) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+        }
+
+        console.log('[AI] 所有尝试失败，使用模拟综合题目数据');
+        return this.getMockComprehensiveQuestions(context);
+    }
+
+    buildComprehensiveQuestionsPrompt(context) {
+        return `作为一名资深的教育测评专家，请为初中生生成综合能力评估题目。
+
+要求：
+1. 涵盖学科：${context.subjects.join('、')}
+2. 题目总数：${context.questionCount}道
+3. 每个学科至少${Math.ceil(context.questionCount / context.subjects.length)}道题
+4. 难度适中，符合初中生水平
+5. 每个学科题目要平均分布
+
+题目格式要求：
+- 每道题必须包含：题目内容、4个选项(A、B、C、D)、正确答案、所属学科、知识点
+- 选项格式："A. xxx", "B. xxx", "C. xxx", "D. xxx"
+- 正确答案只能是"A"、"B"、"C"、"D"中的一个
+
+请严格按照以下JSON格式返回，不要添加任何其他说明：
+
+[
+  {
+    "content": "题目内容",
+    "options": ["A. 选项1", "B. 选项2", "C. 选项3", "D. 选项4"],
+    "correct_answer": "A",
+    "subject": "数学",
+    "knowledge_points": ["知识点1", "知识点2"],
+    "difficulty_level": 2
+  }
+]
+
+现在请生成${context.questionCount}道综合评估题目：`;
+    }
+
+    getMockComprehensiveQuestions(context) {
+        const questionTemplates = {
+            '数学': [
+                {
+                    content: "计算：(-3) + 5 - (-2) = ?",
+                    options: ["A. 4", "B. 6", "C. 10", "D. 0"],
+                    correct_answer: "A",
+                    knowledge_points: ["有理数运算"],
+                    difficulty_level: 2
+                },
+                {
+                    content: "若 x + 3 = 7，则 x = ?",
+                    options: ["A. 4", "B. 10", "C. 3", "D. -4"],
+                    correct_answer: "A",
+                    knowledge_points: ["方程求解"],
+                    difficulty_level: 2
+                },
+                {
+                    content: "下列哪个是完全平方式？",
+                    options: ["A. x² + 4x + 4", "B. x² + 4x + 3", "C. x² + 3x + 4", "D. x² + 5x + 4"],
+                    correct_answer: "A",
+                    knowledge_points: ["代数式"],
+                    difficulty_level: 3
+                }
+            ],
+            '语文': [
+                {
+                    content: "下列词语中读音完全正确的是：",
+                    options: ["A. 压轴(zhòu)", "B. 纤维(xiān)", "C. 模样(mó)", "D. 处理(chǔ)"],
+                    correct_answer: "B",
+                    knowledge_points: ["字音识别"],
+                    difficulty_level: 2
+                },
+                {
+                    content: "\"春眠不觉晓，处处闻啼鸟\"的作者是：",
+                    options: ["A. 李白", "B. 杜甫", "C. 孟浩然", "D. 王维"],
+                    correct_answer: "C",
+                    knowledge_points: ["古诗词作者"],
+                    difficulty_level: 2
+                },
+                {
+                    content: "下列句子中没有语病的是：",
+                    options: ["A. 大家都喜欢和他一起讨论问题", "B. 我们要避免不犯类似的错误", "C. 这个问题对我们很有启发性", "D. 他的学习态度是我们学习的榜样"],
+                    correct_answer: "A",
+                    knowledge_points: ["语病识别"],
+                    difficulty_level: 3
+                }
+            ],
+            '物理': [
+                {
+                    content: "声音在15℃空气中的传播速度约为：",
+                    options: ["A. 340 m/s", "B. 300 m/s", "C. 380 m/s", "D. 360 m/s"],
+                    correct_answer: "A",
+                    knowledge_points: ["声学基础"],
+                    difficulty_level: 2
+                },
+                {
+                    content: "以下属于光的反射现象的是：",
+                    options: ["A. 水中的鱼", "B. 平面镜成像", "C. 彩虹", "D. 日食"],
+                    correct_answer: "B",
+                    knowledge_points: ["光学现象"],
+                    difficulty_level: 2
+                },
+                {
+                    content: "物体的重力方向总是：",
+                    options: ["A. 垂直向下", "B. 垂直向上", "C. 斜向下", "D. 水平向右"],
+                    correct_answer: "A",
+                    knowledge_points: ["重力"],
+                    difficulty_level: 1
+                }
+            ],
+            '化学': [
+                {
+                    content: "水的化学式是：",
+                    options: ["A. H₂O", "B. CO₂", "C. NaCl", "D. CaCO₃"],
+                    correct_answer: "A",
+                    knowledge_points: ["化学式"],
+                    difficulty_level: 1
+                },
+                {
+                    content: "以下属于化学变化的是：",
+                    options: ["A. 冰融化", "B. 纸燃烧", "C. 食盐溶解", "D. 水蒸发"],
+                    correct_answer: "B",
+                    knowledge_points: ["化学变化"],
+                    difficulty_level: 2
+                },
+                {
+                    content: "空气中氧气的体积分数约为：",
+                    options: ["A. 21%", "B. 78%", "C. 1%", "D. 50%"],
+                    correct_answer: "A",
+                    knowledge_points: ["空气组成"],
+                    difficulty_level: 2
+                }
+            ],
+            '英语': [
+                {
+                    content: "Choose the correct answer: I _____ to school every day.",
+                    options: ["A. go", "B. goes", "C. going", "D. went"],
+                    correct_answer: "A",
+                    knowledge_points: ["动词时态"],
+                    difficulty_level: 2
+                },
+                {
+                    content: "What's the plural form of 'child'?",
+                    options: ["A. childs", "B. children", "C. childes", "D. child"],
+                    correct_answer: "B",
+                    knowledge_points: ["名词复数"],
+                    difficulty_level: 2
+                }
+            ]
+        };
+
+        const questionsPerSubject = Math.ceil(context.questionCount / context.subjects.length);
+        const questions = [];
+        let questionId = 1;
+
+        context.subjects.forEach(subject => {
+            const templates = questionTemplates[subject] || [];
+            for (let i = 0; i < questionsPerSubject && questionId <= context.questionCount; i++) {
+                const template = templates[i % templates.length];
+                if (template) {
+                    questions.push({
+                        id: questionId++,
+                        subject: subject,
+                        type: 'multiple_choice',
+                        ...template
+                    });
+                }
+            }
+        });
+
+        return questions.slice(0, context.questionCount);
+    }
+
+    // 生成综合评估报告
+    async generateComprehensiveReport(assessmentData) {
+        const maxRetries = 3;
+        let attempt = 0;
+
+        while (attempt < maxRetries) {
+            attempt++;
+            console.log(`[AI] 尝试生成综合评估报告，第${attempt}次尝试`);
+
+            try {
+                const response = await this.client.call({
+                    model: this.model,
+                    messages: [
+                        {
+                            role: 'user',
+                            content: this.buildComprehensiveReportPrompt(assessmentData)
+                        }
+                    ]
+                });
+
+                console.log(`[AI] 第${attempt}次尝试，综合报告API响应:`, response);
+
+                if (response && response.output && response.output.choices && response.output.choices[0]) {
+                    const content = response.output.choices[0].message.content;
+                    console.log('[AI] 原始综合报告响应:', content);
+                    
+                    const report = this.parseReportResponse(content);
+                    if (this.validateReport(report)) {
+                        console.log(`[AI] 第${attempt}次尝试成功生成综合报告`);
+                        return report;
+                    }
+                }
+
+                if (attempt < maxRetries) {
+                    console.log(`[AI] 第${attempt}次尝试失败，1秒后重试...`);
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            } catch (error) {
+                console.error(`[AI] 第${attempt}次尝试API调用失败:`, error.message);
+                if (attempt < maxRetries) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+        }
+
+        console.log('[AI] 所有尝试失败，使用模拟综合报告数据');
+        return this.getMockComprehensiveReport(assessmentData);
+    }
+
+    buildComprehensiveReportPrompt(assessmentData) {
+        // 按学科分组分析
+        const subjectAnalysis = {};
+        assessmentData.answers.forEach(answer => {
+            const subject = answer.subject;
+            if (!subjectAnalysis[subject]) {
+                subjectAnalysis[subject] = { correct: 0, total: 0, knowledgePoints: [] };
+            }
+            subjectAnalysis[subject].total++;
+            if (answer.isCorrect) {
+                subjectAnalysis[subject].correct++;
+            }
+            if (answer.knowledgePoints) {
+                subjectAnalysis[subject].knowledgePoints.push(...answer.knowledgePoints);
+            }
+        });
+
+        const subjectSummary = Object.entries(subjectAnalysis).map(([subject, data]) => 
+            `${subject}: ${data.correct}/${data.total} (${Math.round(data.correct/data.total*100)}%)`
+        ).join(', ');
+
+        return `作为一名资深的教育专家，请基于学生的综合能力评估结果生成详细的分析报告。
+
+学生答题情况：
+- 总题数：${assessmentData.totalQuestions}
+- 正确题数：${assessmentData.correctCount}
+- 总体正确率：${Math.round(assessmentData.correctCount/assessmentData.totalQuestions*100)}%
+- 各学科表现：${subjectSummary}
+
+请严格按照以下JSON格式返回分析报告：
+
+{
+  "overall_score": 综合得分(0-100的整数),
+  "strengths": ["优势1", "优势2", "优势3"],
+  "weaknesses": ["薄弱点1", "薄弱点2", "薄弱点3"],
+  "subject_analysis": {
+    "学科名": {
+      "score": 得分,
+      "accuracy": 正确率,
+      "strengths": ["优势"],
+      "improvements": ["改进建议"]
+    }
+  },
+  "recommendations": ["建议1", "建议2", "建议3", "建议4"],
+  "learning_plan": {
+    "short_term": ["短期目标1", "短期目标2"],
+    "long_term": ["长期目标1", "长期目标2"],
+    "study_methods": ["学习方法1", "学习方法2"]
+  },
+  "ai_analysis": "基于多学科综合表现的详细AI分析，至少150字"
+}
+
+要求：
+1. 分析要客观准确，基于实际答题表现
+2. 建议要具体可操作
+3. 突出跨学科能力和综合素养
+4. AI分析要深入且有针对性
+5. 各学科分析要均衡全面`;
+    }
+
+    getMockComprehensiveReport(assessmentData) {
+        const overallScore = Math.round((assessmentData.correctCount / assessmentData.totalQuestions) * 100);
+        
+        // 按学科分组
+        const subjectData = {};
+        assessmentData.answers.forEach(answer => {
+            const subject = answer.subject;
+            if (!subjectData[subject]) {
+                subjectData[subject] = { correct: 0, total: 0 };
+            }
+            subjectData[subject].total++;
+            if (answer.isCorrect) {
+                subjectData[subject].correct++;
+            }
+        });
+
+        const subjectAnalysis = {};
+        Object.entries(subjectData).forEach(([subject, data]) => {
+            const accuracy = Math.round((data.correct / data.total) * 100);
+            subjectAnalysis[subject] = {
+                score: accuracy,
+                accuracy: accuracy,
+                strengths: accuracy > 80 ? ["基础扎实", "理解准确"] : ["有一定基础"],
+                improvements: accuracy < 70 ? ["加强基础练习", "重点复习"] : ["继续保持"]
+            };
+        });
+
+        return {
+            overall_score: overallScore,
+            strengths: overallScore > 85 ? ["综合能力强", "学科平衡", "基础扎实"] : ["有学习潜力", "基础较好", "态度认真"],
+            weaknesses: overallScore < 70 ? ["基础需巩固", "理解需加深", "练习需增加"] : ["细节需注意", "速度可提升"],
+            subject_analysis: subjectAnalysis,
+            recommendations: [
+                "制定个性化学习计划",
+                "加强跨学科知识整合",
+                "定期进行综合测评",
+                "培养自主学习能力"
+            ],
+            learning_plan: {
+                short_term: ["完成当前薄弱知识点复习", "建立错题本并定期回顾"],
+                long_term: ["建立完整的知识体系", "培养学科间的关联思维"],
+                study_methods: ["多做综合性题目", "参与小组讨论学习"]
+            },
+            ai_analysis: `基于您的综合评估表现，整体正确率为${Math.round(assessmentData.correctCount/assessmentData.totalQuestions*100)}%，显示出良好的跨学科学习能力。在各学科中，表现相对均衡，这表明您具备较好的学习基础和适应能力。建议继续保持这种均衡发展的态势，同时针对相对薄弱的环节进行专项提升。通过系统性的练习和知识梳理，您的综合能力还有进一步提升的空间。`
+        };
+    }
 }
 
 const aiService = new DashscopeAI();
@@ -1704,6 +2099,280 @@ app.get('/api/semester-plan/:studentId', (req, res) => {
             plan
         });
     });
+});
+
+// ============ 综合评估API路由 ============
+
+// 开始综合评估
+app.post('/api/comprehensive-assessment/start', async (req, res) => {
+    try {
+        console.log('[API] 收到综合评估开始请求:', req.body);
+        
+        const { studentId = 'student_001', subjects = [], questionCount = 10 } = req.body;
+        
+        if (!subjects || subjects.length < 2) {
+            return res.status(400).json({ 
+                success: false, 
+                error: '至少需要选择2个学科' 
+            });
+        }
+        
+        const sessionId = uuidv4();
+        
+        console.log('[API] 创建综合评估会话:', { sessionId, studentId, subjects, questionCount });
+        
+        // 创建测评会话
+        await new Promise((resolve, reject) => {
+            db.run(
+                `INSERT INTO assessment_sessions (id, student_id, subject, type) 
+                 VALUES (?, ?, ?, ?)`,
+                [sessionId, studentId, '综合评估', subjects.join(',')],
+                function(err) {
+                    if (err) reject(err);
+                    else resolve();
+                }
+            );
+        });
+
+        console.log('[API] 综合评估会话创建成功，开始生成题目');
+
+        // 生成综合评估题目
+        const questionContext = {
+            subjects,
+            questionCount,
+            studentId
+        };
+
+        console.log('[API] 准备调用AI服务生成综合题目，参数:', questionContext);
+        
+        let questions;
+        try {
+            questions = await aiService.generateComprehensiveQuestions(questionContext);
+            console.log(`[API] AI生成 ${questions.length} 道综合题目成功`);
+        } catch (error) {
+            console.warn('[API] AI生成综合题目失败，使用模拟题目:', error.message);
+            questions = aiService.getMockComprehensiveQuestions(questionContext);
+        }
+
+        // 保存题目到数据库
+        for (let i = 0; i < questions.length; i++) {
+            const question = questions[i];
+            const questionId = uuidv4();
+            
+            await new Promise((resolve, reject) => {
+                db.run(
+                    `INSERT INTO questions (id, session_id, content, type, options, correct_answer, difficulty_level, knowledge_points, explanation, ai_generated, subject)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [
+                        questionId,
+                        sessionId,
+                        question.content,
+                        question.type || 'multiple_choice',
+                        JSON.stringify(question.options || []),
+                        question.correct_answer,
+                        question.difficulty_level || 2,
+                        Array.isArray(question.knowledge_points) ? question.knowledge_points.join(',') : '',
+                        question.explanation || '',
+                        1,
+                        question.subject
+                    ],
+                    function(err) {
+                        if (err) reject(err);
+                        else {
+                            questions[i].id = questionId;
+                            resolve();
+                        }
+                    }
+                );
+            });
+        }
+
+        console.log('[API] 所有综合题目已保存到数据库');
+
+        res.json({
+            success: true,
+            session: {
+                id: sessionId,
+                studentId,
+                subjects,
+                questionCount: questions.length,
+                type: 'comprehensive'
+            },
+            questions: questions,
+            message: `综合评估会话创建成功，已生成${questions.length}道题目`
+        });
+
+    } catch (error) {
+        console.error('[API] 创建综合评估会话失败:', error);
+        res.status(500).json({ 
+            success: false,
+            error: '创建综合评估会话失败',
+            details: error.message 
+        });
+    }
+});
+
+// 完成综合评估
+app.post('/api/comprehensive-assessment/complete', async (req, res) => {
+    try {
+        const { sessionId, answers } = req.body;
+        
+        console.log('[API] 收到完成综合评估请求:', { sessionId, answersCount: answers?.length });
+        
+        // 保存所有答案到数据库
+        if (answers && answers.length > 0) {
+            for (const answer of answers) {
+                const answerId = uuidv4();
+                await new Promise((resolve, reject) => {
+                    db.run(
+                        `INSERT INTO student_answers (id, session_id, question_id, student_answer, is_correct, response_time)
+                         VALUES (?, ?, ?, ?, ?, ?)`,
+                        [
+                            answerId,
+                            sessionId,
+                            answer.questionId,
+                            answer.studentAnswer,
+                            answer.isCorrect ? 1 : 0,
+                            answer.responseTime || 0
+                        ],
+                        function(err) {
+                            if (err) reject(err);
+                            else resolve();
+                        }
+                    );
+                });
+            }
+            console.log('[API] 保存了', answers.length, '个综合评估答案记录');
+        }
+
+        // 准备评估数据
+        const totalQuestions = answers.length;
+        const correctCount = answers.filter(a => a.isCorrect).length;
+        
+        // 构建按学科分组的答案数据
+        const assessmentData = {
+            answers: answers.map(a => ({
+                isCorrect: Boolean(a.isCorrect),
+                subject: a.subject,
+                knowledgePoints: a.knowledgePoints || [],
+                responseTime: a.responseTime
+            })),
+            totalQuestions,
+            correctCount,
+            subjects: [...new Set(answers.map(a => a.subject))]
+        };
+
+        try {
+            const reportData = await aiService.generateComprehensiveReport(assessmentData);
+            const reportId = uuidv4();
+            
+            // 保存综合报告到数据库
+            db.run(
+                `INSERT INTO assessment_reports (id, session_id, overall_score, strengths, weaknesses, recommendations, learning_plan, ai_analysis, subject_analysis)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    reportId,
+                    sessionId,
+                    reportData.overall_score,
+                    JSON.stringify(reportData.strengths),
+                    JSON.stringify(reportData.weaknesses),
+                    JSON.stringify(reportData.recommendations),
+                    JSON.stringify(reportData.learning_plan),
+                    reportData.ai_analysis,
+                    JSON.stringify(reportData.subject_analysis || {})
+                ]
+            );
+            
+            // 更新会话状态
+            db.run(
+                `UPDATE assessment_sessions 
+                 SET status = 'completed', completed_at = CURRENT_TIMESTAMP, total_score = ?
+                 WHERE id = ?`,
+                [reportData.overall_score, sessionId]
+            );
+            
+            res.json({
+                success: true,
+                report: {
+                    id: reportId,
+                    sessionId,
+                    totalQuestions,
+                    correctCount,
+                    type: 'comprehensive',
+                    ...reportData
+                }
+            });
+            
+        } catch (error) {
+            console.error('生成综合报告失败:', error);
+            res.status(500).json({ error: '生成综合报告失败' });
+        }
+        
+    } catch (error) {
+        console.error('完成综合评估失败:', error);
+        res.status(500).json({ error: '完成综合评估失败' });
+    }
+});
+
+// 获取综合评估报告
+app.get('/api/comprehensive-assessment/report/:sessionId', (req, res) => {
+    const { sessionId } = req.params;
+    
+    db.get(
+        `SELECT ar.*, s.subject, s.type, s.started_at, s.completed_at, st.name as student_name
+         FROM assessment_reports ar
+         JOIN assessment_sessions s ON ar.session_id = s.id
+         JOIN students st ON s.student_id = st.id
+         WHERE ar.session_id = ?`,
+        [sessionId],
+        (err, report) => {
+            if (err) {
+                return res.status(500).json({ error: '获取综合报告失败' });
+            }
+            
+            if (!report) {
+                return res.status(404).json({ error: '综合报告不存在' });
+            }
+            
+            // 解析JSON字段
+            try {
+                report.strengths = JSON.parse(report.strengths || '[]');
+                report.weaknesses = JSON.parse(report.weaknesses || '[]');
+                report.recommendations = JSON.parse(report.recommendations || '[]');
+                report.learning_plan = JSON.parse(report.learning_plan || '{}');
+                report.subject_analysis = JSON.parse(report.subject_analysis || '{}');
+                
+                // 获取答案详情用于前端分析
+                db.all(
+                    `SELECT sa.*, q.subject, q.knowledge_points
+                     FROM student_answers sa 
+                     JOIN questions q ON sa.question_id = q.id 
+                     WHERE sa.session_id = ?`,
+                    [sessionId],
+                    (err, answers) => {
+                        if (!err && answers) {
+                            report.answers = answers.map(a => ({
+                                isCorrect: Boolean(a.is_correct),
+                                subject: a.subject,
+                                knowledgePoints: a.knowledge_points ? a.knowledge_points.split(',') : []
+                            }));
+                        }
+                        
+                        res.json({
+                            success: true,
+                            report
+                        });
+                    }
+                );
+            } catch (parseError) {
+                console.error('解析综合报告数据失败:', parseError);
+                res.json({
+                    success: true,
+                    report
+                });
+            }
+        }
+    );
 });
 
 // 根路径重定向到首页
