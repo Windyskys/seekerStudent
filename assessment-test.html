@@ -400,7 +400,7 @@
         class AdaptiveAssessment {
             constructor() {
                 this.currentQuestionIndex = 0;
-                this.totalQuestions = 5;
+                this.totalQuestions = 8; // 增加到8题
                 this.questions = [];
                 this.answers = [];
                 this.startTime = Date.now();
@@ -409,6 +409,8 @@
                 this.studentId = 'S003'; // 王小华的学号
                 this.studentName = '王小华';
                 this.timerInterval = null;
+                this.apiBaseUrl = '/api'; // 添加API基础URL
+                this.useAI = true; // 启用AI功能
 
                 this.initializeElements();
                 this.startAssessment();
@@ -432,6 +434,8 @@
             async startAssessment() {
                 this.showLoading();
                 try {
+                    // 先启动测评会话
+                    await this.startAssessmentSession();
                     await this.loadNextQuestion();
                     this.hideLoading();
                 } catch (error) {
@@ -440,14 +444,74 @@
                 }
             }
 
+            async startAssessmentSession() {
+                if (!this.useAI) return;
+                
+                try {
+                    const response = await fetch(`${this.apiBaseUrl}/assessment/start`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            studentId: this.studentId,
+                            subject: '数学',
+                            gradeLevel: '七年级'
+                        })
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        this.sessionId = result.session.id;
+                        console.log('测评会话已启动:', this.sessionId);
+                    }
+                } catch (error) {
+                    console.error('启动测评会话失败:', error);
+                    this.useAI = false; // 回退到离线模式
+                }
+            }
+
             async loadNextQuestion() {
-                // 获取预设题目
-                const question = await this.fetchQuestion(this.calculateNextDifficulty());
+                // 尝试从API获取题目
+                let question = await this.fetchQuestionFromAPI();
+                
+                // 如果API失败，使用预设题目
+                if (!question) {
+                    question = await this.fetchQuestion(this.calculateNextDifficulty());
+                }
                 
                 this.questions.push(question);
                 this.displayQuestion(question);
                 this.updateProgress();
                 this.questionStartTime = Date.now();
+            }
+
+            async fetchQuestionFromAPI() {
+                if (!this.useAI) return null;
+                
+                try {
+                    const response = await fetch(`${this.apiBaseUrl}/assessment/next-question`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            sessionId: this.sessionId,
+                            previousAnswers: this.answers
+                        })
+                    });
+
+                    const result = await response.json();
+                    if (result.success && result.question) {
+                        console.log('获取到AI生成题目:', result.question);
+                        return result.question;
+                    }
+                } catch (error) {
+                    console.error('获取AI题目失败:', error);
+                    this.useAI = false; // 回退到离线模式
+                }
+                
+                return null;
             }
 
             calculateNextDifficulty() {
@@ -473,7 +537,7 @@
             }
 
             async fetchQuestion(difficulty) {
-                // 预设题目库
+                // 预设题目库 - 确保有8题以上
                 const mockQuestions = [
                     {
                         id: 1,
@@ -499,23 +563,66 @@
                         options: ["A. 一定为正", "B. 一定为负", "C. 无法确定", "D. 等于零"],
                         correct_answer: "C",
                         difficulty_level: 3,
-                        knowledge_points: ["有理数运算", "符号判断"]
+                        knowledge_points: ["有理数性质"]
                     },
                     {
                         id: 4,
-                        content: "已知 |x| = 3，则 x 的值为 ___",
+                        content: "计算：|-5| + |3| = ___",
                         type: "fill_blank",
-                        correct_answer: "±3",
-                        difficulty_level: 3,
+                        correct_answer: "8",
+                        difficulty_level: 1,
                         knowledge_points: ["绝对值"]
                     },
                     {
                         id: 5,
-                        content: "计算：(-2)³ × (-3)² = ___",
+                        content: "下列运算正确的是？",
+                        type: "multiple_choice",
+                        options: ["A. (-2)³ = 8", "B. (-3)² = -9", "C. (-1)⁴ = 1", "D. (-5)¹ = 5"],
+                        correct_answer: "C",
+                        difficulty_level: 3,
+                        knowledge_points: ["幂运算"]
+                    },
+                    {
+                        id: 6,
+                        content: "某地某天的最高气温是8℃，最低气温是-3℃，那么这天的温差是___℃",
                         type: "fill_blank",
-                        correct_answer: "-72",
+                        correct_answer: "11",
+                        difficulty_level: 2,
+                        knowledge_points: ["有理数应用"]
+                    },
+                    {
+                        id: 7,
+                        content: "如果|x| = 5，那么x的值是？",
+                        type: "multiple_choice",
+                        options: ["A. 5", "B. -5", "C. ±5", "D. 不确定"],
+                        correct_answer: "C",
+                        difficulty_level: 3,
+                        knowledge_points: ["绝对值方程"]
+                    },
+                    {
+                        id: 8,
+                        content: "计算：(-2) × 3 + (-4) ÷ 2 = ___",
+                        type: "fill_blank",
+                        correct_answer: "-8",
                         difficulty_level: 4,
-                        knowledge_points: ["有理数运算", "幂运算"]
+                        knowledge_points: ["有理数混合运算"]
+                    },
+                    {
+                        id: 9,
+                        content: "在数轴上，点A表示-3，点B表示2，则线段AB的长度是？",
+                        type: "multiple_choice",
+                        options: ["A. 1", "B. 5", "C. -1", "D. -5"],
+                        correct_answer: "B",
+                        difficulty_level: 4,
+                        knowledge_points: ["数轴", "距离"]
+                    },
+                    {
+                        id: 10,
+                        content: "比较大小：-0.5 ___ -2/3 (填入>、<或=)",
+                        type: "fill_blank",
+                        correct_answer: ">",
+                        difficulty_level: 3,
+                        knowledge_points: ["有理数比较"]
                     }
                 ];
 
